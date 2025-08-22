@@ -1,0 +1,12 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Run Django Server",
+      "type": "shell",
+      "command": "C:/Users/Sebastian Reyez/proyct/.venv/Scripts/python.exe manage.py runserver",
+      "group": "build",
+      "problemMatcher": []
+    }
+  ]
+}

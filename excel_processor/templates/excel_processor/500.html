@@ -1,0 +1,9 @@
+{% extends 'excel_processor/base.html' %}
+{% block title %}Error del servidor{% endblock %}
+{% block content %}
+<div class="alert alert-danger mt-5">
+    <h2>Error 500</h2>
+    <p>Ha ocurrido un error inesperado en el servidor.</p>
+    <a href="/excel/" class="btn btn-primary">Volver al inicio</a>
+</div>
+{% endblock %}

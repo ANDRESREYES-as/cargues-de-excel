@@ -1,0 +1,20 @@
+{% extends 'excel_processor/base.html' %}
+{% block title %}Subir Excel{% endblock %}
+{% block content %}
+<h2>Subir archivo Excel</h2>
+<form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    <div class="mb-3">
+        <input type="file" name="archivo" class="form-control" required>
+    </div>
+    <button type="submit" class="btn btn-primary">Subir</button>
+</form>
+{% if pdf_3_7 or pdf_otros %}
+    <div class="alert alert-success mt-3">
+        <p>Archivos PDF generados:</p>
+        {% if pdf_3_7 %}<a href="{{ pdf_3_7 }}" class="btn btn-success" target="_blank">Descargar PDF iny 3/7</a><br>{% endif %}
+        {% if pdf_otros %}<a href="{{ pdf_otros }}" class="btn btn-success" target="_blank">Descargar PDF otros</a>{% endif %}
+        <a href="/excel/pdfs/" class="btn btn-secondary mt-2">Ver todos los PDFs</a>
+    </div>
+{% endif %}
+{% endblock %}

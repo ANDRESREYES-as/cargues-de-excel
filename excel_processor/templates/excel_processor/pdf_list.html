@@ -1,0 +1,41 @@
+{% extends 'excel_processor/base.html' %}
+{% block title %}Impresión de Planillas PDF{% endblock %}
+{% block content %}
+<h2>Impresión de Planillas PDF</h2>
+<form method="get" class="row g-3 mb-3">
+    <div class="col-auto">
+        <input type="text" name="consecutivo" class="form-control" placeholder="Buscar por consecutivo" value="{{ request.GET.consecutivo }}">
+    </div>
+    <div class="col-auto">
+        <button type="submit" class="btn btn-secondary">Buscar</button>
+    </div>
+</form>
+<table class="table table-bordered table-sm">
+    <thead>
+        <tr>
+            <th>Consecutivo</th>
+            <th>Archivo</th>
+            <th>Fecha</th>
+            <th>PDF</th>
+        </tr>
+    </thead>
+    <tbody>
+    {% for proc in procesos %}
+        <tr>
+            <td>{{ proc.consecutivo }}</td>
+            <td>{{ proc.archivo }}</td>
+            <td>{{ proc.fecha|date:'Y-m-d H:i' }}</td>
+            <td>
+                {% if proc.pdf_path %}
+                    <a href="{{ proc.pdf_path }}" class="btn btn-sm btn-success" target="_blank">Descargar PDF</a>
+                {% else %}
+                    <span class="text-danger">No generado</span>
+                {% endif %}
+            </td>
+        </tr>
+    {% empty %}
+        <tr><td colspan="4">No hay planillas encontradas.</td></tr>
+    {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

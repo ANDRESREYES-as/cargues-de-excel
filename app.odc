@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odc:OfficeDataConnection xmlns:odc="urn:schemas-microsoft-com:office:odc" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <odc:Connection odc:Type="ODBC">
+    <odc:ConnectionString>
+      Driver={MySQL ODBC 9.3 Unicode Driver};
+      Server=172.16.4.176;
+      Database=app;
+      User=remoto;
+      Password=miclave123;
+      Port=3306;
+    </odc:ConnectionString>
+    <!-- Cambiado a SQL para consultas personalizadas -->
+    <odc:CommandType>SQL</odc:CommandType>
+    <!-- Consulta para listar tablas (opcional) -->
+    <odc:CommandText>SHOW TABLES;</odc:CommandText>
+  </odc:Connection>
+  <odc:TableName>Listado_Tablas_MySQL</odc:TableName>
+</odc:OfficeDataConnection>
