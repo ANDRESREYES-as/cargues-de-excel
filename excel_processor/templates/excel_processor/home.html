@@ -4,8 +4,15 @@
 <h1>Panel de Producción</h1>
 <p>Bienvenido al sistema de gestión de planillas de producción.</p>
 <ul>
+    <li><button type="button" class="btn btn-lg btn-info" 
+        data-bs-toggle="popover" 
+        data-bs-title="Popover title" 
+        data-bs-html="true"
+        data-bs-content="And here’s some amazing content. <a href='/excel/pdfs'>Ver PDFs</a>">
+    Click to toggle popover
+</button></li>
     <li><a href="/excel/upload/">Subir nuevo archivo Excel</a></li>
     <li><a href="/excel/historico/">Ver histórico de registros</a></li>
-    <li><a href="/excel/pdfs/">ver pdfs</a></li>
+    <li><a href="/excel/pdfs/">Ver Pdf</a></li>
 </ul>
 {% endblock %}
