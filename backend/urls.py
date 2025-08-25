@@ -20,6 +20,7 @@ from django.conf import settings
 from django.conf.urls.static import static
 
 urlpatterns = [
+    path('/',include('excel_processor.urls')),
     path('admin/', admin.site.urls),
     path('excel/', include('excel_processor.urls')),
     # Habilita acceso directo a excel_processor/
