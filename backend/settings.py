@@ -90,6 +90,7 @@ USE_TZ = True
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
+os.umask(0o022)
 STATIC_URL = '/static/'
 STATIC_ROOT = '/var/www/mi_django_app/staticfiles'
 
