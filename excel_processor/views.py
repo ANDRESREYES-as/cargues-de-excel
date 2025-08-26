@@ -260,7 +260,7 @@ def generar_pdf(nombre, filas, consecutivo):
         c.line(col_positions[-1] + col_widths[-1], y_line_top, col_positions[-1] + col_widths[-1], y_line_bottom)
         c.setLineWidth(1)
         c.line(margen, y_line_bottom, col_positions[-1] + col_widths[-1], y_line_bottom)
-        y -= 12 + 22
+        y -= 12 + 22 + 15  # AGREGADO: 15 puntos adicionales de separación
         return y
     pagina = 1
     y = dibujar_encabezado(y, pagina)
