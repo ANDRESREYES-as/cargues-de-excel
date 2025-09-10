@@ -1,0 +1,254 @@
+{% extends 'excel_processor/base.html' %}
+
+{% block title %}Procesamiento por Lotes de PDF{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Procesamiento por Lotes de PDFs</h2>
+    
+    <!-- Formulario para subir archivos -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <h5 class="card-title">Subir PDFs para Procesar</h5>
+            <form id="uploadForm" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label for="pdfFiles" class="form-label">Seleccione los archivos PDF:</label>
+                    <input type="file" class="form-control" id="pdfFiles" name="pdf_files[]" multiple accept=".pdf">
+                </div>
+                <button type="submit" class="btn btn-primary" id="uploadBtn">Procesar PDFs</button>
+            </form>
+            <div id="uploadProgress" class="progress mt-3 d-none">
+                <div class="progress-bar" role="progressbar" style="width: 0%"></div>
+            </div>
+            <div id="uploadStatus" class="mt-3"></div>
+        </div>
+    </div>
+
+    <!-- Lista de PDFs Generados -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <h5 class="card-title">PDFs Generados</h5>
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Nombre del Archivo</th>
+                            <th>Fecha de Procesamiento</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="pdfList">
+                        {% for pdf in pdfs_generados %}
+                        <tr>
+                            <td>{{ pdf.filename }}</td>
+                            <td>{{ pdf.process_date|date:"d/m/Y H:i" }}</td>
+                            <td>
+                                <button class="btn btn-sm btn-primary view-pdf" data-pdf-path="{{ pdf.filepath }}">
+                                    Ver PDF
+                                </button>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="3" class="text-center">No hay PDFs generados</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Historial de Procesamiento -->
+    <div class="card">
+        <div class="card-body">
+            <h5 class="card-title">Historial de Procesamiento</h5>
+            
+            <!-- Filtro por nombre de archivo -->
+            <form class="mb-3" method="get">
+                <div class="input-group">
+                    <input type="text" class="form-control" name="filename" 
+                           placeholder="Filtrar por nombre de archivo"
+                           value="{{ request.GET.filename|default:'' }}">
+                    <button class="btn btn-outline-secondary" type="submit">Filtrar</button>
+                </div>
+            </form>
+
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Nombre del Archivo</th>
+                            <th>Fecha</th>
+                            <th>Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in history %}
+                        <tr>
+                            <td>{{ item.filename }}</td>
+                            <td>{{ item.process_date|date:"d/m/Y H:i" }}</td>
+                            <td>
+                                <span class="badge {% if item.success %}bg-success{% else %}bg-danger{% endif %}">
+                                    {{ item.success|yesno:"Éxito,Error" }}
+                                </span>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="3" class="text-center">No hay registros en el historial</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Paginación -->
+            {% if history.has_other_pages %}
+            <nav aria-label="Navegación de páginas">
+                <ul class="pagination justify-content-center">
+                    {% if history.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ history.previous_page_number }}{% if request.GET.filename %}&filename={{ request.GET.filename }}{% endif %}">
+                            Anterior
+                        </a>
+                    </li>
+                    {% endif %}
+
+                    {% for num in history.paginator.page_range %}
+                        {% if history.number == num %}
+                        <li class="page-item active">
+                            <span class="page-link">{{ num }}</span>
+                        </li>
+                        {% else %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ num }}{% if request.GET.filename %}&filename={{ request.GET.filename }}{% endif %}">
+                                {{ num }}
+                            </a>
+                        </li>
+                        {% endif %}
+                    {% endfor %}
+
+                    {% if history.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ history.next_page_number }}{% if request.GET.filename %}&filename={{ request.GET.filename }}{% endif %}">
+                            Siguiente
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Modal para visualizar PDFs -->
+<div class="modal fade" id="pdfModal" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Visualizar PDF</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <iframe id="pdfViewer" style="width: 100%; height: 80vh;" frameborder="0"></iframe>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const uploadForm = document.getElementById('uploadForm');
+    const uploadBtn = document.getElementById('uploadBtn');
+    const uploadProgress = document.getElementById('uploadProgress');
+    const progressBar = uploadProgress.querySelector('.progress-bar');
+    const uploadStatus = document.getElementById('uploadStatus');
+    
+    // Función para mostrar mensaje de estado
+    function showStatus(message, isError = false) {
+        uploadStatus.innerHTML = `<div class="alert alert-${isError ? 'danger' : 'success'}">${message}</div>`;
+    }
+    
+    // Manejar la subida de archivos
+    uploadForm.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const formData = new FormData(this);
+        const files = document.getElementById('pdfFiles').files;
+        
+        if (files.length === 0) {
+            showStatus('Por favor seleccione al menos un archivo PDF', true);
+            return;
+        }
+        
+        // Validar que todos sean PDFs
+        for (let file of files) {
+            if (!file.name.toLowerCase().endsWith('.pdf')) {
+                showStatus('Solo se permiten archivos PDF', true);
+                return;
+            }
+        }
+        
+        uploadBtn.disabled = true;
+        uploadProgress.classList.remove('d-none');
+        progressBar.style.width = '0%';
+        
+        try {
+            const response = await fetch('', {
+                method: 'POST',
+                body: formData
+            });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                showStatus(result.message);
+                // Recargar la página para mostrar el nuevo PDF
+                setTimeout(() => window.location.reload(), 2000);
+            } else {
+                showStatus(result.error || 'Error al procesar los archivos', true);
+            }
+        } catch (error) {
+            showStatus('Error al enviar los archivos: ' + error, true);
+        } finally {
+            uploadBtn.disabled = false;
+            progressBar.style.width = '100%';
+        }
+    });
+    
+    // Manejar la visualización de PDFs
+    document.querySelectorAll('.view-pdf').forEach(button => {
+        button.addEventListener('click', async function() {
+            const pdfPath = this.dataset.pdfPath;
+            try {
+                const response = await fetch('', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                    },
+                    body: `action=open_pdf&pdf_path=${encodeURIComponent(pdfPath)}`
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    const pdfViewer = document.getElementById('pdfViewer');
+                    pdfViewer.src = result.url;
+                    const modal = new bootstrap.Modal(document.getElementById('pdfModal'));
+                    modal.show();
+                } else {
+                    alert('Error al abrir el PDF: ' + result.error);
+                }
+            } catch (error) {
+                alert('Error al abrir el PDF: ' + error);
+            }
+        });
+    });
+});
+</script>
+{% endblock %}

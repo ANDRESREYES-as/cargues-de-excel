@@ -11,7 +11,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-zp^irrs2i1$r7i3r48v68nyt^f81mmi2i4vygh&d^_%*-)vbg*'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 ALLOWED_HOSTS = ['172.16.4.153', 'localhost', '127.0.0.1']
 
 # Application definition
@@ -90,13 +90,18 @@ USE_TZ = True
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
-os.umask(0o022)
 STATIC_URL = '/static/'
-STATIC_ROOT = '/var/www/mi_django_app/staticfiles'
+STATICFILES_DIRS = [BASE_DIR / 'staticfiles']
+STATIC_ROOT = BASE_DIR / 'static'
 
-# Configuración para archivos media - ¡AGREGADO!
+# Configuración para archivos media
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
+
+# Configuración para servir archivos en desarrollo
+if DEBUG:
+    import mimetypes
+    mimetypes.add_type("application/pdf", ".pdf", True)
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field

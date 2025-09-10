@@ -4,12 +4,10 @@ from django.conf import settings
 from django.conf.urls.static import static
 
 urlpatterns = [
-    path('',include('excel_processor.urls')),
-    path('', include('excel_processor.urls')),
     path('admin/', admin.site.urls),
     path('excel/', include('excel_processor.urls')),
-    path('excel_processor/', include('excel_processor.urls')),
 ]
 
-# IMPORTANTE: Esta línea debe estar al final
-urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+if settings.DEBUG:
+    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

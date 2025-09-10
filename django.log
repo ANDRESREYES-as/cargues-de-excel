@@ -420,3 +420,42 @@ Not Found: /media/planilla_48.pdf
 Not Found: /media/planilla_47.pdf
 Not Found: /media/planilla_49.pdf
 Not Found: /media/planilla_49.pdf
+Watching for file changes with StatReloader
+Watching for file changes with StatReloader
+"GET /excel/ HTTP/1.1" 200 1336
+Not Found: /favicon.ico
+"GET /favicon.ico HTTP/1.1" 404 179
+"GET /excel/pdfs/ HTTP/1.1" 200 26863
+"GET /excel/upload/ HTTP/1.1" 200 1301
+"GET /excel/historico/ HTTP/1.1" 200 20801
+"GET /excel/historico/ HTTP/1.1" 200 20801
+"GET /excel/pdfs/ HTTP/1.1" 200 26863
+"GET /excel/ HTTP/1.1" 200 1336
+"GET /excel/historico/ HTTP/1.1" 200 20801
+"GET /excel/upload/ HTTP/1.1" 200 1301
+"GET /excel/pdfs/ HTTP/1.1" 200 26863
+Watching for file changes with StatReloader
+"GET /excel/pdfs/ HTTP/1.1" 200 27500
+"GET /excel/pdfs/ HTTP/1.1" 200 27500
+"GET /excel/pdf-batch/ HTTP/1.1" 200 8935
+"POST /excel/pdf-batch/ HTTP/1.1" 200 57
+Watching for file changes with StatReloader
+"GET /excel/pdf-batch/ HTTP/1.1" 200 8935
+"POST /excel/pdf-batch/ HTTP/1.1" 200 108
+"GET /excel/pdf-batch/ HTTP/1.1" 200 10818
+"POST /excel/pdf-batch/ HTTP/1.1" 200 78
+Not Found: /media/combined_pdfs/combined_20250910_125349.pdf
+"GET /media/combined_pdfs/combined_20250910_125349.pdf HTTP/1.1" 404 179
+Watching for file changes with StatReloader
+"POST /excel/pdf-batch/ HTTP/1.1" 200 78
+Not Found: /media/combined_pdfs/combined_20250910_125349.pdf
+"GET /media/combined_pdfs/combined_20250910_125349.pdf HTTP/1.1" 404 179
+C:\Users\Sebastian Reyez\Downloads\cargues-de-excel-main\backend\settings.py changed, reloading.
+Watching for file changes with StatReloader
+C:\Users\Sebastian Reyez\Downloads\cargues-de-excel-main\backend\settings.py changed, reloading.
+Watching for file changes with StatReloader
+C:\Users\Sebastian Reyez\Downloads\cargues-de-excel-main\backend\urls.py changed, reloading.
+Watching for file changes with StatReloader
+Watching for file changes with StatReloader
+"POST /excel/pdf-batch/ HTTP/1.1" 200 78
+"GET /media/combined_pdfs/combined_20250910_125349.pdf HTTP/1.1" 200 238951
