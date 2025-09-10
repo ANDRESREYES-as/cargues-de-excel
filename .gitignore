@@ -27,3 +27,5 @@ media/
 # IDE
 .vscode/
 .idea/
+django.log
+django.log
