@@ -29,3 +29,10 @@ media/
 .idea/
 django.log
 django.log
+
+# Python compiled files
+__pycache__/
+*.pyc
+
+# Database
+*.sqlite3
