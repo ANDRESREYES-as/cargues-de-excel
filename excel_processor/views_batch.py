@@ -24,10 +24,30 @@ def handle_uploaded_files(files):
     temp_dir = os.path.join(settings.MEDIA_ROOT, 'temp_uploads')
     os.makedirs(temp_dir, exist_ok=True)
     
+    # Limpiar archivos temporales antiguos
+    try:
+        for old_file in os.listdir(temp_dir):
+            file_path = os.path.join(temp_dir, old_file)
+            if os.path.isfile(file_path):
+                file_age = datetime.datetime.now() - datetime.datetime.fromtimestamp(os.path.getmtime(file_path))
+                if file_age.total_seconds() > 3600:  # Más de 1 hora
+                    try:
+                        os.remove(file_path)
+                        print(f"Archivo temporal antiguo eliminado: {file_path}")
+                    except:
+                        pass
+    except Exception as e:
+        print(f"Error al limpiar archivos temporales: {e}")
+    
     for uploaded_file in files:
         try:
             if not uploaded_file.name.lower().endswith('.pdf'):
                 print(f"Archivo ignorado (no es PDF): {uploaded_file.name}")
+                continue
+            
+            # Validar tamaño del archivo
+            if uploaded_file.size > settings.FILE_UPLOAD_MAX_MEMORY_SIZE:
+                print(f"Archivo demasiado grande ignorado: {uploaded_file.name}")
                 continue
                 
             timestamp = datetime.datetime.now().strftime('%Y%m%d_%H%M%S_%f')
@@ -37,15 +57,28 @@ def handle_uploaded_files(files):
             
             print(f"Guardando archivo: {file_path}")
             
-            with open(file_path, 'wb+') as destination:
-                for chunk in uploaded_file.chunks():
-                    destination.write(chunk)
+            # Guardar directamente en la ubicación final
+            try:
+                with open(file_path, 'wb') as dest_file:
+                    for chunk in uploaded_file.chunks(chunk_size=1024*1024):  # 1MB chunks
+                        dest_file.write(chunk)
+                    dest_file.flush()
+                    os.fsync(dest_file.fileno())  # Asegurar que los datos se escriban en disco
                     
-            if os.path.exists(file_path) and os.path.getsize(file_path) > 0:
-                saved_files.append(file_path)
-                print(f"Archivo guardado exitosamente: {file_path}")
-            else:
-                print(f"Error: El archivo {file_path} no se guardó correctamente")
+                if os.path.exists(file_path) and os.path.getsize(file_path) > 0:
+                    saved_files.append(file_path)
+                    print(f"Archivo guardado exitosamente: {file_path}")
+            except Exception as e:
+                print(f"Error al guardar archivo {uploaded_file.name}: {str(e)}")
+                print(traceback.format_exc())
+                # Si hay error, intentar limpiar el archivo parcial
+                try:
+                    if os.path.exists(file_path):
+                        os.remove(file_path)
+                except:
+                    pass
+            
+                continue
                 
         except Exception as e:
             print(f"Error al guardar archivo {uploaded_file.name}: {str(e)}")
@@ -83,6 +116,14 @@ def pdf_batch_process(request):
                     'error': 'No se recibieron archivos PDF'
                 })
             
+            # Validar archivos antes de procesarlos
+            total_size = sum(f.size for f in uploaded_files)
+            if total_size > settings.DATA_UPLOAD_MAX_MEMORY_SIZE:
+                return JsonResponse({
+                    'success': False,
+                    'error': f'El tamaño total de los archivos ({total_size / (1024*1024):.1f}MB) excede el límite permitido ({settings.DATA_UPLOAD_MAX_MEMORY_SIZE / (1024*1024):.1f}MB)'
+                })
+
             # Procesar los archivos subidos
             saved_files = handle_uploaded_files(uploaded_files)
             
@@ -95,9 +136,14 @@ def pdf_batch_process(request):
             # Procesar los PDFs
             processor = PDFBatchProcessor()
             try:
-                output_path = os.path.join(settings.MEDIA_ROOT, 'combined_pdfs', 
-                             f'combined_{datetime.datetime.now().strftime("%Y%m%d_%H%M%S")}.pdf')
-                os.makedirs(os.path.dirname(output_path), exist_ok=True)
+                # Crear directorios si no existen
+                output_dir = os.path.join(settings.MEDIA_ROOT, 'combined_pdfs')
+                os.makedirs(output_dir, exist_ok=True)
+                os.makedirs(os.path.join(settings.MEDIA_ROOT, 'temp_uploads'), exist_ok=True)
+                
+                # Generar nombre único para el archivo combinado
+                timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+                output_path = os.path.join(output_dir, f'combined_{timestamp}.pdf')
                 
                 result = processor.combine_pdfs(saved_files, output_path)
                 

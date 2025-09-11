@@ -51,10 +51,6 @@
                 <div class="progress-bar" role="progressbar" style="width: 0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
             </div>
             <div id="uploadStatus" class="mt-3"></div>
-            <div id="uploadProgress" class="progress mt-3 d-none">
-                <div class="progress-bar" role="progressbar" style="width: 0%"></div>
-            </div>
-            <div id="uploadStatus" class="mt-3"></div>
         </div>
     </div>
 
@@ -234,12 +230,15 @@ document.addEventListener('DOMContentLoaded', function() {
                 method: 'POST',
                 body: formData,
                 headers: {
-                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
-                    'X-Requested-With': 'XMLHttpRequest'
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
                 }
             });
 
             if (!response.ok) {
+                if (response.status === 413) {
+                    throw new Error('Los archivos son demasiado grandes. Intente subir menos archivos o archivos más pequeños.');
+                }
                 throw new Error(`Error del servidor: ${response.status}`);
             }
 
@@ -250,11 +249,126 @@ document.addEventListener('DOMContentLoaded', function() {
 
             return result;
         } catch (error) {
+            if (error.name === 'TimeoutError') {
+                throw new Error('La subida ha excedido el tiempo límite. Intente con archivos más pequeños.');
+            }
             throw new Error(`Error en la subida: ${error.message}`);
         }
     }
 
+    // Función para visualizar PDF
+    async function viewPDF(pdfPath) {
+        try {
+            const response = await fetch(window.location.pathname, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                },
+                body: `action=open_pdf&pdf_path=${encodeURIComponent(pdfPath)}`
+            });
+
+            const result = await response.json();
+            if (result.success) {
+                const pdfViewer = document.getElementById('pdfViewer');
+                pdfViewer.src = result.url;
+                const modal = new bootstrap.Modal(document.getElementById('pdfModal'));
+                modal.show();
+            } else {
+                throw new Error(result.error || 'Error al abrir el PDF');
+            }
+        } catch (error) {
+            console.error('Error al abrir PDF:', error);
+            showStatus('Error al abrir el PDF: ' + error.message, true);
+        }
+    }
+
     // Manejar el envío del formulario
+    uploadForm.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const files = document.getElementById('pdfFiles').files;
+        if (files.length === 0) {
+            showStatus('Por favor seleccione al menos un archivo PDF', true);
+            return;
+        }
+
+        // Validar tamaño total y cantidad de archivos
+        let totalSize = 0;
+        for (const file of files) {
+            totalSize += file.size;
+            if (!file.name.toLowerCase().endsWith('.pdf')) {
+                showStatus('Solo se permiten archivos PDF', true);
+                return;
+            }
+        }
+
+        // Advertir si el tamaño total es grande
+        const MAX_TOTAL_SIZE = 500 * 1024 * 1024; // 500MB
+        if (totalSize > MAX_TOTAL_SIZE) {
+            const confirmUpload = confirm(`Los archivos seleccionados son muy grandes (${(totalSize / (1024 * 1024)).toFixed(2)}MB). Esto puede tomar varios minutos. ¿Desea continuar?`);
+            if (!confirmUpload) {
+                return;
+            }
+        }
+
+        updateUI(true);
+        uploadProgress.classList.remove('d-none');
+        showStatus('Iniciando procesamiento...');
+
+        try {
+            showStatus('Preparando archivos para subir...');
+            await new Promise(resolve => setTimeout(resolve, 100)); // Dar tiempo a la UI para actualizar
+
+            const formData = new FormData();
+            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+            formData.append('csrfmiddlewaretoken', csrfToken);
+            
+            // Agregar archivos uno por uno para mostrar progreso
+            const total = files.length;
+            try {
+                for (let i = 0; i < files.length; i++) {
+                    const file = files[i];
+                    formData.append('pdf_files[]', file);
+                    
+                    // Actualizar barra de progreso
+                    const progress = ((i + 1) / total * 100).toFixed(0);
+                    progressBar.style.width = `${progress}%`;
+                    progressBar.setAttribute('aria-valuenow', progress);
+                    showStatus(`Preparando archivo ${i + 1} de ${total}: ${file.name}`);
+                    
+                    // Dar tiempo al navegador para liberar memoria
+                    if (i > 0 && i % 5 === 0) {
+                        await new Promise(resolve => setTimeout(resolve, 100));
+                    }
+                }
+            } catch (error) {
+                throw new Error(`Error al preparar los archivos: ${error.message}`);
+            }
+
+            showStatus('Subiendo archivos al servidor...');
+            console.log(`Procesando ${files.length} archivos...`);
+
+            const result = await uploadFiles(formData);
+            showStatus(result.message || 'PDFs procesados exitosamente');
+            setTimeout(() => window.location.reload(), 2000);
+
+        } catch (error) {
+            console.error('Error durante la subida:', error);
+            showStatus(error.message || 'Error durante la subida de archivos', true);
+        } finally {
+            updateUI(false);
+        }
+    });
+
+    // Manejar clicks en botones de ver PDF
+    document.querySelectorAll('.view-pdf').forEach(button => {
+        button.addEventListener('click', function() {
+            const pdfPath = this.dataset.pdfPath;
+            viewPDF(pdfPath);
+        });
+    });
+    // Manejar la subida de archivos
     uploadForm.addEventListener('submit', async function(e) {
         e.preventDefault();
         
@@ -288,16 +402,36 @@ document.addEventListener('DOMContentLoaded', function() {
 
         updateUI(true);
         uploadProgress.classList.remove('d-none');
-        showStatus('Iniciando procesamiento...');
+        showStatus('Subiendo archivos...');
 
         try {
             const formData = new FormData(this);
-            console.log(`Procesando ${files.length} archivos...`);
+            
+            // Verificar el FormData
+            for (let pair of formData.entries()) {
+                console.log('FormData contiene:', pair[0], pair[1] instanceof File ? pair[1].name : pair[1]);
+            }
 
-            const result = await uploadFiles(formData);
-            showStatus(result.message || 'PDFs procesados exitosamente');
-            setTimeout(() => window.location.reload(), 2000);
+            const response = await fetch(window.location.pathname, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            });
 
+            if (!response.ok) {
+                throw new Error(`Error del servidor: ${response.status}`);
+            }
+
+            const result = await response.json();
+            if (result.success) {
+                showStatus(result.message || 'PDFs procesados exitosamente');
+                setTimeout(() => window.location.reload(), 2000);
+            } else {
+                throw new Error(result.error || 'Error al procesar los PDFs');
+            }
         } catch (error) {
             console.error('Error durante la subida:', error);
             showStatus(error.message || 'Error durante la subida de archivos', true);
@@ -305,8 +439,8 @@ document.addEventListener('DOMContentLoaded', function() {
             updateUI(false);
         }
     });
-
-    // Manejar clicks en botones de ver PDF
+    
+    // Manejar la visualización de PDFs
     document.querySelectorAll('.view-pdf').forEach(button => {
         button.addEventListener('click', async function() {
             const pdfPath = this.dataset.pdfPath;
