@@ -98,6 +98,11 @@ STATIC_ROOT = BASE_DIR / 'static'
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
+# Configuración para subida de archivos grandes
+DATA_UPLOAD_MAX_MEMORY_SIZE = 157286400  # 150MB
+FILE_UPLOAD_MAX_MEMORY_SIZE = 157286400  # 150MB
+DATA_UPLOAD_MAX_NUMBER_FILES = 200  # Permitir hasta 200 archivos
+
 # Configuración para servir archivos en desarrollo
 if DEBUG:
     import mimetypes

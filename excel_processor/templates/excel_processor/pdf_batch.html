@@ -191,10 +191,24 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
         
-        // Validar que todos sean PDFs
+        // Validar que todos sean PDFs y el tamaño total
+        let totalSize = 0;
+        if (files.length > 200) {
+            showStatus('Se permite un máximo de 200 archivos', true);
+            return;
+        }
+        
         for (let file of files) {
             if (!file.name.toLowerCase().endsWith('.pdf')) {
                 showStatus('Solo se permiten archivos PDF', true);
+                return;
+            }
+            totalSize += file.size;
+        }
+        
+        // Mostrar advertencia si los archivos son grandes
+        if (totalSize > 150 * 1024 * 1024) { // 150MB
+            if (!confirm('Los archivos seleccionados son muy grandes (más de 100MB). ¿Desea continuar?')) {
                 return;
             }
         }
@@ -202,17 +216,40 @@ document.addEventListener('DOMContentLoaded', function() {
         uploadBtn.disabled = true;
         uploadProgress.classList.remove('d-none');
         progressBar.style.width = '0%';
+        showStatus('Subiendo archivos...', false);
         
         try {
             // Obtener el token CSRF
             const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
             
-            const response = await fetch(window.location.href, {
-                method: 'POST',
-                body: formData,
-                headers: {
-                    'X-CSRFToken': csrfToken
+            const xhr = new XMLHttpRequest();
+            xhr.open('POST', window.location.href, true);
+            xhr.setRequestHeader('X-CSRFToken', csrfToken);
+            
+            // Manejar el progreso de la subida
+            xhr.upload.onprogress = function(e) {
+                if (e.lengthComputable) {
+                    const percentComplete = (e.loaded / e.total) * 100;
+                    progressBar.style.width = percentComplete + '%';
+                    progressBar.setAttribute('aria-valuenow', percentComplete);
+                    showStatus(`Subiendo: ${Math.round(percentComplete)}%`, false);
                 }
+            };
+            
+            // Promesa para manejar la respuesta
+            const response = await new Promise((resolve, reject) => {
+                xhr.onload = function() {
+                    if (xhr.status === 200) {
+                        resolve({
+                            ok: true,
+                            json: () => JSON.parse(xhr.responseText)
+                        });
+                    } else {
+                        reject(new Error(`HTTP error! status: ${xhr.status}`));
+                    }
+                };
+                xhr.onerror = () => reject(new Error('Network error'));
+                xhr.send(formData);
             });
             
             if (!response.ok) {
