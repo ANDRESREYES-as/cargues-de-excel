@@ -110,13 +110,13 @@ def pdf_batch_process(request):
         pdf_path = request.POST.get('pdf_path')
         if pdf_path:
             try:
-                # Si el path comienza con /, es una URL relativa
-                if pdf_path.startswith('/'):
-                    return JsonResponse({'success': True, 'url': pdf_path})
-                    
-                # Si no, construir la URL para el PDF
-                pdf_url = os.path.join(settings.MEDIA_URL, os.path.relpath(pdf_path, settings.MEDIA_ROOT))
-                return JsonResponse({'success': True, 'url': pdf_url})
+                # Convertir la ruta del archivo a una URL relativa
+                if os.path.exists(pdf_path):
+                    relative_path = os.path.relpath(pdf_path, settings.MEDIA_ROOT)
+                    pdf_url = settings.MEDIA_URL + relative_path.replace('\\', '/')
+                    return JsonResponse({'success': True, 'url': pdf_url})
+                else:
+                    return JsonResponse({'success': False, 'error': 'Archivo no encontrado'})
             except Exception as e:
                 return JsonResponse({'success': False, 'error': str(e)})
         return JsonResponse({'success': False, 'error': 'Ruta de PDF no proporcionada'})
