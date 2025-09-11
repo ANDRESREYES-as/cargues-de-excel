@@ -204,12 +204,27 @@ document.addEventListener('DOMContentLoaded', function() {
         progressBar.style.width = '0%';
         
         try {
-            const response = await fetch('', {
+            // Obtener el token CSRF
+            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+            
+            const response = await fetch(window.location.href, {
                 method: 'POST',
-                body: formData
+                body: formData,
+                headers: {
+                    'X-CSRFToken': csrfToken
+                }
             });
             
-            const result = await response.json();
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            let result;
+            const contentType = response.headers.get("content-type");
+            if (contentType && contentType.indexOf("application/json") !== -1) {
+                result = await response.json();
+            } else {
+                throw new Error("La respuesta del servidor no es JSON válido");
+            }
             
             if (result.success) {
                 showStatus(result.message);
@@ -219,7 +234,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 showStatus(result.error || 'Error al procesar los archivos', true);
             }
         } catch (error) {
-            showStatus('Error al enviar los archivos: ' + error, true);
+            console.error('Error completo:', error);
+            showStatus('Error al enviar los archivos: ' + error.message, true);
         } finally {
             uploadBtn.disabled = false;
             progressBar.style.width = '100%';
