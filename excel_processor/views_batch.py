@@ -21,6 +21,11 @@ def pdf_batch_process(request):
     
     # Manejar la subida y procesamiento de PDFs
     if request.method == 'POST' and not request.POST.get('action'):
+        # Configurar el manejo de archivos grandes
+        request.upload_handlers = [
+            'django.core.files.uploadhandler.MemoryFileUploadHandler',
+            'django.core.files.uploadhandler.TemporaryFileUploadHandler',
+        ]
         uploaded_files = request.FILES.getlist('pdf_files[]')
         print(f"Archivos recibidos: {len(uploaded_files)}")  # Log
         

@@ -99,9 +99,17 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
 # Configuración para subida de archivos grandes
-DATA_UPLOAD_MAX_MEMORY_SIZE = 157286400  # 150MB
-FILE_UPLOAD_MAX_MEMORY_SIZE = 157286400  # 150MB
-DATA_UPLOAD_MAX_NUMBER_FILES = 200  # Permitir hasta 200 archivos
+DATA_UPLOAD_MAX_MEMORY_SIZE = None  # Sin límite
+FILE_UPLOAD_MAX_MEMORY_SIZE = None  # Sin límite
+DATA_UPLOAD_MAX_NUMBER_FILES = None  # Sin límite de archivos
+FILE_UPLOAD_PERMISSIONS = 0o644
+FILE_UPLOAD_DIRECTORY_PERMISSIONS = 0o755
+FILE_UPLOAD_HANDLERS = [
+    'django.core.files.uploadhandler.MemoryFileUploadHandler',
+    'django.core.files.uploadhandler.TemporaryFileUploadHandler',
+]
+# Aumentar el tiempo máximo de ejecución para procesamiento de archivos grandes
+DATA_UPLOAD_MAX_NUMBER_FIELDS = 10240
 
 # Configuración para servir archivos en desarrollo
 if DEBUG:

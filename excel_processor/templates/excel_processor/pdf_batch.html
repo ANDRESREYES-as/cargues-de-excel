@@ -222,34 +222,51 @@ document.addEventListener('DOMContentLoaded', function() {
             // Obtener el token CSRF
             const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
             
-            const xhr = new XMLHttpRequest();
-            xhr.open('POST', window.location.href, true);
-            xhr.setRequestHeader('X-CSRFToken', csrfToken);
-            
-            // Manejar el progreso de la subida
-            xhr.upload.onprogress = function(e) {
-                if (e.lengthComputable) {
-                    const percentComplete = (e.loaded / e.total) * 100;
-                    progressBar.style.width = percentComplete + '%';
-                    progressBar.setAttribute('aria-valuenow', percentComplete);
-                    showStatus(`Subiendo: ${Math.round(percentComplete)}%`, false);
-                }
-            };
-            
-            // Promesa para manejar la respuesta
-            const response = await new Promise((resolve, reject) => {
-                xhr.onload = function() {
-                    if (xhr.status === 200) {
-                        resolve({
-                            ok: true,
-                            json: () => JSON.parse(xhr.responseText)
-                        });
-                    } else {
-                        reject(new Error(`HTTP error! status: ${xhr.status}`));
+            // Función para enviar archivos en chunks
+            async function uploadInChunks(formData) {
+                const xhr = new XMLHttpRequest();
+                xhr.open('POST', window.location.href, true);
+                xhr.setRequestHeader('X-CSRFToken', csrfToken);
+                xhr.setRequestHeader('X-File-Size', totalSize);
+                xhr.setRequestHeader('X-File-Count', files.length);
+                
+                // Manejar el progreso de la subida
+                xhr.upload.onprogress = function(e) {
+                    if (e.lengthComputable) {
+                        const percentComplete = (e.loaded / e.total) * 100;
+                        progressBar.style.width = percentComplete + '%';
+                        progressBar.setAttribute('aria-valuenow', percentComplete);
+                        showStatus(`Subiendo: ${Math.round(percentComplete)}%`, false);
                     }
                 };
-                xhr.onerror = () => reject(new Error('Network error'));
-                xhr.send(formData);
+                
+                // Promesa para manejar la respuesta
+                return new Promise((resolve, reject) => {
+                    xhr.onload = function() {
+                        if (xhr.status === 200) {
+                            resolve({
+                                ok: true,
+                                json: () => JSON.parse(xhr.responseText)
+                            });
+                        } else if (xhr.status === 413) {
+                            reject(new Error('El archivo es demasiado grande. Por favor, intente con archivos más pequeños.'));
+                        } else {
+                            reject(new Error(`Error del servidor (${xhr.status}): ${xhr.statusText}`));
+                        }
+                    };
+                    xhr.onerror = () => reject(new Error('Error de red. Verifica tu conexión.'));
+                    xhr.ontimeout = () => reject(new Error('La solicitud excedió el tiempo límite.'));
+                    
+                    try {
+                        xhr.send(formData);
+                    } catch (e) {
+                        reject(new Error('Error al enviar los archivos: ' + e.message));
+                    }
+                });
+            }
+            
+            // Intentar la subida
+            const response = await uploadInChunks(formData);
             });
             
             if (!response.ok) {
