@@ -99,9 +99,9 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
 # Configuración para subida de archivos grandes
-DATA_UPLOAD_MAX_MEMORY_SIZE = None  # Sin límite
-FILE_UPLOAD_MAX_MEMORY_SIZE = None  # Sin límite
-DATA_UPLOAD_MAX_NUMBER_FILES = None  # Sin límite de archivos
+DATA_UPLOAD_MAX_MEMORY_SIZE = 524288000  # 500MB
+FILE_UPLOAD_MAX_MEMORY_SIZE = 524288000  # 500MB
+DATA_UPLOAD_MAX_NUMBER_FILES = 1000  # Permitir hasta 1000 archivos
 FILE_UPLOAD_PERMISSIONS = 0o644
 FILE_UPLOAD_DIRECTORY_PERMISSIONS = 0o755
 FILE_UPLOAD_HANDLERS = [
@@ -110,6 +110,10 @@ FILE_UPLOAD_HANDLERS = [
 ]
 # Aumentar el tiempo máximo de ejecución para procesamiento de archivos grandes
 DATA_UPLOAD_MAX_NUMBER_FIELDS = 10240
+
+# Configuraciones adicionales para archivos grandes
+FILE_UPLOAD_TEMP_DIR = None  # Usar el directorio temporal del sistema
+FILE_UPLOAD_MAX_MEMORY_SIZE = 524288000  # 500MB
 
 # Configuración para servir archivos en desarrollo
 if DEBUG:

@@ -15,117 +15,122 @@ import traceback
 from .models import PDFProcessHistory
 from .pdf_utils import PDFBatchProcessor
 
+def handle_uploaded_files(files):
+    """
+    Maneja los archivos subidos y los guarda en el directorio temporal.
+    Retorna una lista de las rutas de los archivos guardados.
+    """
+    saved_files = []
+    temp_dir = os.path.join(settings.MEDIA_ROOT, 'temp_uploads')
+    os.makedirs(temp_dir, exist_ok=True)
+    
+    for uploaded_file in files:
+        try:
+            if not uploaded_file.name.lower().endswith('.pdf'):
+                print(f"Archivo ignorado (no es PDF): {uploaded_file.name}")
+                continue
+                
+            timestamp = datetime.datetime.now().strftime('%Y%m%d_%H%M%S_%f')
+            safe_name = ''.join(c for c in uploaded_file.name if c.isalnum() or c in '._-')
+            unique_name = f"{timestamp}_{safe_name}"
+            file_path = os.path.join(temp_dir, unique_name)
+            
+            print(f"Guardando archivo: {file_path}")
+            
+            with open(file_path, 'wb+') as destination:
+                for chunk in uploaded_file.chunks():
+                    destination.write(chunk)
+                    
+            if os.path.exists(file_path) and os.path.getsize(file_path) > 0:
+                saved_files.append(file_path)
+                print(f"Archivo guardado exitosamente: {file_path}")
+            else:
+                print(f"Error: El archivo {file_path} no se guardó correctamente")
+                
+        except Exception as e:
+            print(f"Error al guardar archivo {uploaded_file.name}: {str(e)}")
+            print(traceback.format_exc())
+            
+    return saved_files
+
 @csrf_exempt
 def pdf_batch_process(request):
     """Vista para procesar PDFs por lotes y mostrar todos los PDFs"""
     
-    # Manejar la subida y procesamiento de PDFs
-    if request.method == 'POST' and not request.POST.get('action'):
-        # Configurar el manejo de archivos grandes
-        request.upload_handlers = [
-            'django.core.files.uploadhandler.MemoryFileUploadHandler',
-            'django.core.files.uploadhandler.TemporaryFileUploadHandler',
-        ]
-        uploaded_files = request.FILES.getlist('pdf_files[]')
-        print(f"Archivos recibidos: {len(uploaded_files)}")  # Log
-        
-        if uploaded_files:
+    if request.method == 'POST':
+        try:
+            # Manejar la solicitud de apertura de PDF
+            if request.POST.get('action') == 'open_pdf':
+                pdf_path = request.POST.get('pdf_path')
+                if not pdf_path or not os.path.exists(pdf_path):
+                    return JsonResponse({
+                        'success': False,
+                        'error': 'Archivo PDF no encontrado'
+                    })
+                
+                relative_path = os.path.relpath(pdf_path, settings.MEDIA_ROOT)
+                pdf_url = settings.MEDIA_URL + relative_path.replace('\\', '/')
+                return JsonResponse({'success': True, 'url': pdf_url})
+            
+            # Procesar la carga de archivos PDF
+            print("Procesando carga de archivos PDF")
+            uploaded_files = request.FILES.getlist('pdf_files[]')
+            print(f"Archivos recibidos: {len(uploaded_files)}")
+            
+            if not uploaded_files:
+                return JsonResponse({
+                    'success': False,
+                    'error': 'No se recibieron archivos PDF'
+                })
+            
+            # Procesar los archivos subidos
+            saved_files = handle_uploaded_files(uploaded_files)
+            
+            if not saved_files:
+                return JsonResponse({
+                    'success': False,
+                    'error': 'No se pudo guardar ningún archivo PDF'
+                })
+            
+            # Procesar los PDFs
             processor = PDFBatchProcessor()
             try:
-                # Crear directorio temporal para los archivos subidos
-                temp_dir = os.path.join(settings.MEDIA_ROOT, 'temp_uploads')
-                os.makedirs(temp_dir, exist_ok=True)
+                output_path = os.path.join(settings.MEDIA_ROOT, 'combined_pdfs', 
+                             f'combined_{datetime.datetime.now().strftime("%Y%m%d_%H%M%S")}.pdf')
+                os.makedirs(os.path.dirname(output_path), exist_ok=True)
                 
-                # Guardar archivos subidos
-                saved_files = []
-                for uploaded_file in uploaded_files:
+                result = processor.combine_pdfs(saved_files, output_path)
+                
+                # Limpiar archivos temporales
+                for file_path in saved_files:
                     try:
-                        if not uploaded_file.name.lower().endswith('.pdf'):
-                            print(f"Archivo ignorado (no es PDF): {uploaded_file.name}")
-                            continue
-                            
-                        # Generar un nombre único para evitar colisiones
-                        timestamp = datetime.datetime.now().strftime('%Y%m%d_%H%M%S_%f')
-                        safe_name = ''.join(c for c in uploaded_file.name if c.isalnum() or c in '._-')
-                        unique_name = f"{timestamp}_{safe_name}"
-                        file_path = os.path.join(temp_dir, unique_name)
-                        
-                        print(f"Guardando archivo: {file_path}")
-                        
-                        # Guardar el archivo en chunks para manejar archivos grandes
-                        with open(file_path, 'wb+') as destination:
-                            for chunk in uploaded_file.chunks():
-                                destination.write(chunk)
-                                
-                        # Verificar que el archivo se guardó correctamente
-                        if os.path.exists(file_path) and os.path.getsize(file_path) > 0:
-                            saved_files.append(file_path)
-                            print(f"Archivo guardado exitosamente: {file_path}")
-                        else:
-                            print(f"Error: El archivo {file_path} no se guardó correctamente")
-                            
-                    except Exception as e:
-                        print(f"Error al guardar archivo {uploaded_file.name}: {str(e)}")
-                        print(traceback.format_exc())
-                
-                if saved_files:
-                    output_path = os.path.join(settings.MEDIA_ROOT, 'combined_pdfs', 
-                                             f'combined_{datetime.datetime.now().strftime("%Y%m%d_%H%M%S")}.pdf')
-                    os.makedirs(os.path.dirname(output_path), exist_ok=True)
-                    print(f"Ruta de salida: {output_path}")
-                    
-                    result = processor.combine_pdfs(saved_files, output_path)
-                    print(f"Resultado de combinación: {result}")
-                    
-                    # Limpiar archivos temporales
-                    for file_path in saved_files:
-                        try:
+                        if os.path.exists(file_path):
                             os.remove(file_path)
-                        except Exception as e:
-                            print(f"Error al eliminar archivo temporal {file_path}: {e}")
-                            
-                    if result:
-                        return JsonResponse({
-                            'success': True,
-                            'message': f'PDFs procesados exitosamente. Archivo generado: {os.path.basename(result)}'
-                        })
-                    else:
-                        return JsonResponse({
-                            'success': False,
-                            'error': 'Error al procesar los PDFs'
-                        })
+                    except Exception as e:
+                        print(f"Error al eliminar archivo temporal {file_path}: {e}")
+                
+                if result:
+                    return JsonResponse({
+                        'success': True,
+                        'message': f'PDFs procesados exitosamente. Archivo generado: {os.path.basename(result)}'
+                    })
                 else:
                     return JsonResponse({
                         'success': False,
-                        'error': 'No se recibieron archivos PDF válidos'
+                        'error': 'Error al procesar los PDFs'
                     })
-                    
-            except Exception as e:
-                print(f"Error al procesar PDFs: {str(e)}")
-                print(traceback.format_exc())
-                return JsonResponse({
-                    'success': False,
-                    'error': str(e)
-                })
             finally:
                 processor.cleanup()
                 
-    # Manejar la solicitud de apertura de PDF
-    elif request.method == 'POST' and request.POST.get('action') == 'open_pdf':
-        pdf_path = request.POST.get('pdf_path')
-        if pdf_path:
-            try:
-                # Convertir la ruta del archivo a una URL relativa
-                if os.path.exists(pdf_path):
-                    relative_path = os.path.relpath(pdf_path, settings.MEDIA_ROOT)
-                    pdf_url = settings.MEDIA_URL + relative_path.replace('\\', '/')
-                    return JsonResponse({'success': True, 'url': pdf_url})
-                else:
-                    return JsonResponse({'success': False, 'error': 'Archivo no encontrado'})
-            except Exception as e:
-                return JsonResponse({'success': False, 'error': str(e)})
-        return JsonResponse({'success': False, 'error': 'Ruta de PDF no proporcionada'})
+        except Exception as e:
+            print(f"Error durante el procesamiento: {str(e)}")
+            print(traceback.format_exc())
+            return JsonResponse({
+                'success': False,
+                'error': f'Error durante el procesamiento: {str(e)}'
+            })
     
+    # Manejar solicitud GET
     # Obtener solo los PDFs combinados finales (no los individuales)
     pdfs_generados = PDFProcessHistory.objects.filter(
         is_batch=True,
