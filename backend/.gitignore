@@ -1,0 +1,18 @@
+
+# Python compiled files
+__pycache__/
+*.pyc
+
+# Collected static files
+/static/
+
+# Python compiled files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Database files
+*.sqlite3
+*.db
+*.sqlite
