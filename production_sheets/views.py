@@ -28,7 +28,7 @@ def process_production_sheet(request):
                 df = pd.read_excel(request.FILES['excel_file'])
                 
                 # Verificar las columnas requeridas
-                required_columns = ['Consecutivo', 'Referencia', 'OP', 'Fecha Empaque', 'Manifiesto', 'Cant. Produc']
+                required_columns = ['Consecutivo', 'Referencia', 'OP', 'Fecha Empaque', 'Manifiesto']
                 if not all(col in df.columns for col in required_columns):
                     messages.error(request, 'El archivo Excel no tiene el formato correcto. Debe incluir las columnas: ' + ', '.join(required_columns))
                     return render(request, 'production_sheets/upload.html', {'form': form})

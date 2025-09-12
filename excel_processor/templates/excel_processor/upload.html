@@ -1,7 +1,35 @@
 {% extends 'excel_processor/base.html' %}
 {% block title %}Subir Excel{% endblock %}
 {% block content %}
-<h2>Subir archivo Excel</h2>
+<div class="container mt-4">
+    <h2>Subir archivo Excel</h2>
+    
+    {% if error %}
+    <div class="alert alert-danger" role="alert">
+        <h4 class="alert-heading">Error al procesar el archivo</h4>
+        <p style="white-space: pre-line">{{ error }}</p>
+    </div>
+    {% endif %}
+    
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="card-title mb-0">Instrucciones</h5>
+        </div>
+        <div class="card-body">
+            <p>El archivo Excel debe incluir las siguientes columnas:</p>
+            <ul>
+                <li>Consecutivo</li>
+                <li>Referencia</li>
+                <li>OP</li>
+                <li>Fecha Empaque</li>
+                <li>Manifiesto</li>
+            </ul>
+            <p class="text-muted">
+                <i class="bi bi-info-circle"></i>
+                Nota: El campo "Cant. Produc" no es necesario en el Excel, se generará automáticamente durante el procesamiento.
+            </p>
+        </div>
+    </div>
 <form method="post" enctype="multipart/form-data">
     {% csrf_token %}
     <div class="mb-3">

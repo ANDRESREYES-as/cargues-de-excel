@@ -201,12 +201,32 @@ def upload_excel(request):
 def home(request):
     return render(request, 'excel_processor/home.html')
 
+from .utils import validar_formato_excel
+
 def upload_excel_web(request):
     pdf_3_7 = pdf_otros = None
+    error_message = None
+    
     if request.method == 'POST' and request.FILES.get('archivo'):
         archivo = request.FILES['archivo']
-        wb = openpyxl.load_workbook(archivo)
-        ws = wb.active
+        try:
+            wb = openpyxl.load_workbook(archivo)
+            ws = wb.active
+            
+            # Validar formato del Excel
+            es_valido, mensaje = validar_formato_excel(ws)
+            if not es_valido:
+                return render(request, 'excel_processor/upload.html', {
+                    'error': mensaje,
+                    'pdf_3_7': None,
+                    'pdf_otros': None
+                })
+        except Exception as e:
+            return render(request, 'excel_processor/upload.html', {
+                'error': f'Error al procesar el archivo Excel: {str(e)}',
+                'pdf_3_7': None,
+                'pdf_otros': None
+            })
         doc_iny_3_7 = []
         doc_iny_otros = []
         for row in ws.iter_rows(min_row=2, values_only=True):
