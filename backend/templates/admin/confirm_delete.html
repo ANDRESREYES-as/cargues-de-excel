@@ -1,0 +1,40 @@
+{% extends 'excel_processor/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Confirmar Eliminación</h2>
+
+    <div class="alert alert-danger">
+        <h4 class="alert-heading">¿Estás seguro?</h4>
+        <p>Esta acción no se puede deshacer.</p>
+
+        {% if object|class_name == 'ExcelFile' %}
+        <p>Estás a punto de eliminar el archivo: <strong>{{ object.file.name }}</strong></p>
+        {% elif object|class_name == 'ProductionSheet' %}
+        <p>Estás a punto de eliminar la planilla con manifiesto: <strong>{{ object.manifest_number }}</strong></p>
+        {% elif object|class_name == 'ProductionDetail' %}
+        <p>Estás a punto de eliminar el detalle de producción:</p>
+        <ul>
+            <li><strong>Manifiesto:</strong> {{ object.production_sheet.manifest_number }}</li>
+            <li><strong>OP:</strong> {{ object.op }}</li>
+            <li><strong>Referencia:</strong> {{ object.ref }}</li>
+            <li><strong>Talla:</strong> {{ object.size }}</li>
+            <li><strong>Cantidad:</strong> {{ object.quantity }}</li>
+        </ul>
+        {% endif %}
+    </div>
+
+    <form method="post">
+        {% csrf_token %}
+        <div class="btn-group">
+            <button type="submit" class="btn btn-danger">
+                <i class="bi bi-trash"></i> Sí, Eliminar
+            </button>
+            <a href="javascript:history.back()" class="btn btn-secondary">
+                <i class="bi bi-x"></i> Cancelar
+            </a>
+        </div>
+    </form>
+</div>
+{% endblock %}

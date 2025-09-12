@@ -1,0 +1,43 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Planillas de Producción{% endblock %}
+
+{% block content %}
+<h2>Planillas de Producción</h2>
+
+{% if messages %}
+<ul class="messages">
+    {% for message in messages %}
+    <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+    {% endfor %}
+</ul>
+{% endif %}
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Archivo</th>
+            <th>Fecha de Carga</th>
+            <th>Acciones</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for sheet in sheets %}
+        <tr>
+            <td>{{ sheet.id }}</td>
+            <td>{{ sheet.file.name }}</td>
+            <td>{{ sheet.upload_date }}</td>
+            <td>
+                <a href="{% url 'custom_admin:production_sheet_edit' sheet.pk %}" class="btn btn-sm btn-primary">Editar</a>
+                <a href="{% url 'custom_admin:production_sheet_delete' sheet.pk %}" class="btn btn-sm btn-danger">Eliminar</a>
+            </td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="4">No hay planillas de producción disponibles.</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

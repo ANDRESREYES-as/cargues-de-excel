@@ -1,0 +1,77 @@
+{% extends 'admin/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Historial de Procesos PDF</h2>
+        <a href="{% url 'custom_admin:home' %}" class="btn btn-secondary">
+            <i class="bi bi-arrow-left"></i> Volver al Panel
+        </a>
+    </div>
+
+    {% if messages %}
+    <div class="messages mb-4">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="table-responsive">
+        <table class="table table-striped table-hover">
+            <thead class="table-dark">
+                <tr>
+                    <th>Archivo</th>
+                    <th>Fecha de Proceso</th>
+                    <th>Estado</th>
+                    <th>Páginas</th>
+                    <th>Tipo</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for pdf in pdfs %}
+                <tr>
+                    <td>{{ pdf.filename }}</td>
+                    <td>{{ pdf.process_date|date:"d/m/Y H:i" }}</td>
+                    <td>
+                        {% if pdf.success %}
+                        <span class="badge bg-success">Exitoso</span>
+                        {% else %}
+                        <span class="badge bg-danger">Error</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ pdf.pages }}</td>
+                    <td>
+                        {% if pdf.is_batch %}
+                        <span class="badge bg-info">Lote</span>
+                        {% else %}
+                        <span class="badge bg-secondary">Individual</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div class="btn-group" role="group">
+                            {% if pdf.output_path %}
+                            <a href="{{ pdf.get_file_url }}" class="btn btn-info btn-sm" target="_blank">
+                                <i class="bi bi-file-pdf"></i> Ver PDF
+                            </a>
+                            {% endif %}
+                            <a href="{% url 'custom_admin:pdf_process_delete' pk=pdf.pk %}" class="btn btn-danger btn-sm">
+                                <i class="bi bi-trash"></i> Eliminar
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="text-center">No hay historial de procesos PDF</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

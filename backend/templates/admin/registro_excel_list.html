@@ -1,0 +1,71 @@
+{% extends 'admin/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Registros Excel</h2>
+        <a href="{% url 'custom_admin:home' %}" class="btn btn-secondary">
+            <i class="bi bi-arrow-left"></i> Volver al Panel
+        </a>
+    </div>
+
+    {% if messages %}
+    <div class="messages mb-4">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="table-responsive">
+        <table class="table table-striped table-hover">
+            <thead class="table-dark">
+                <tr>
+                    <th>Proceso</th>
+                    <th>Orden</th>
+                    <th>Producción</th>
+                    <th>Cant. Original</th>
+                    <th>Saldo</th>
+                    <th>Cant. Producida</th>
+                    <th>INY</th>
+                    <th>Otros</th>
+                    <th>Fecha</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for registro in registros %}
+                <tr>
+                    <td>{{ registro.proceso.consecutivo }}</td>
+                    <td>{{ registro.orden }}</td>
+                    <td>{{ registro.produccion }}</td>
+                    <td>{{ registro.cant_orig }}</td>
+                    <td>{{ registro.saldo_entregar }}</td>
+                    <td>{{ registro.cant_produc }}</td>
+                    <td>{{ registro.iny }}</td>
+                    <td>{{ registro.otros }}</td>
+                    <td>{{ registro.fecha_registro|date:"d/m/Y H:i" }}</td>
+                    <td>
+                        <div class="btn-group" role="group">
+                            <a href="{% url 'custom_admin:registro_excel_edit' pk=registro.pk %}" class="btn btn-warning btn-sm">
+                                <i class="bi bi-pencil"></i> Editar
+                            </a>
+                            <a href="{% url 'custom_admin:registro_excel_delete' pk=registro.pk %}" class="btn btn-danger btn-sm">
+                                <i class="bi bi-trash"></i> Eliminar
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="10" class="text-center">No hay registros Excel</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,16 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Editar Planilla de Producción{% endblock %}
+
+{% block content %}
+<h2>Editar Planilla de Producción</h2>
+
+<form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    <div class="form-group">
+        {{ form.as_p }}
+    </div>
+    <button type="submit" class="btn btn-primary">Guardar</button>
+    <a href="{% url 'admin:production_sheet_list' %}" class="btn btn-secondary">Cancelar</a>
+</form>
+{% endblock %}

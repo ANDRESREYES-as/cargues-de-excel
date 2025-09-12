@@ -1,0 +1,96 @@
+{% extends 'admin/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2 class="mb-4">Panel de Administración</h2>
+
+    {% if messages %}
+    <div class="messages mb-4">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Estadísticas -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <h5 class="card-title">Procesos Excel</h5>
+                    <p class="card-text display-4">{{ stats.excel_processes }}</p>
+                    <a href="{% url 'custom_admin:excel_process_list' %}" class="btn btn-light">Ver Procesos</a>
+                </div>
+            </div>
+            <div class="col-md">
+                <div class="card bg-info text-white">
+                    <div class="card-body">
+                        <h5 class="card-title">Registros Excel</h5>
+                        <p class="card-text display-4">{{ stats.registros_excel }}</p>
+                        <a href="{% url 'custom_admin:registro_excel_list' %}" class="btn btn-light">Ver Registros</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md">
+                <div class="card bg-warning text-white">
+                    <div class="card-body">
+                        <h5 class="card-title">Procesos PDF</h5>
+                        <p class="card-text display-4">{{ stats.pdf_processes }}</p>
+                        <a href="{% url 'custom_admin:pdf_process_list' %}" class="btn btn-light">Ver PDFs</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <h5 class="card-title">Planillas de Producción</h5>
+                    <p class="card-text display-4">{{ stats.production_sheets }}</p>
+                    <a href="{% url 'custom_admin:production_sheet_list' %}" class="btn btn-light">Ver Planillas</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card bg-info text-white">
+                <div class="card-body">
+                    <h5 class="card-title">Detalles de Producción</h5>
+                    <p class="card-text display-4">{{ stats.production_details }}</p>
+                    <a href="{% url 'custom_admin:production_detail_list' %}" class="btn btn-light">Ver Detalles</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Enlaces Rápidos -->
+    <div class="card">
+        <div class="card-header">
+            <h5 class="card-title mb-0">Enlaces Rápidos</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-4">
+                    <h6>Archivos Excel</h6>
+                    <ul class="list-unstyled">
+                        <li><a href="{% url 'custom_admin:excel_process_list' %}">Lista de Archivos</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-4">
+                    <h6>Planillas de Producción</h6>
+                    <ul class="list-unstyled">
+                        <li><a href="{% url 'custom_admin:production_sheet_list' %}">Lista de Planillas</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-4">
+                    <h6>Detalles de Producción</h6>
+                    <ul class="list-unstyled">
+                        <li><a href="{% url 'custom_admin:production_detail_list' %}">Lista de Detalles</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

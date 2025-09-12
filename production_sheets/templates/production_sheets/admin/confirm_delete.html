@@ -1,0 +1,31 @@
+{% extends 'excel_processor/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Confirmar Eliminación</h2>
+
+    <div class="alert alert-danger">
+        <h4 class="alert-heading">¿Estás seguro?</h4>
+        <p>Estás a punto de eliminar la siguiente planilla:</p>
+        <ul>
+            <li><strong>Manifiesto:</strong> {{ object.manifest_number }}</li>
+            <li><strong>Fecha de Empaque:</strong> {{ object.packing_date|date:"d/m/Y" }}</li>
+            <li><strong>Origen:</strong> {{ object.get_origin_display }}</li>
+        </ul>
+        <p>Esta acción no se puede deshacer.</p>
+    </div>
+
+    <form method="post">
+        {% csrf_token %}
+        <div class="btn-group">
+            <button type="submit" class="btn btn-danger">
+                <i class="bi bi-trash"></i> Sí, Eliminar
+            </button>
+            <a href="{% url 'production_sheets:admin_list' %}" class="btn btn-secondary">
+                <i class="bi bi-x"></i> Cancelar
+            </a>
+        </div>
+    </form>
+</div>
+{% endblock %}

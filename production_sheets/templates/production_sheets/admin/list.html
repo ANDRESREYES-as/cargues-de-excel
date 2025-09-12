@@ -1,0 +1,73 @@
+{% extends 'excel_processor/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Administración de Planillas</h2>
+    </div>
+
+    {% if messages %}
+    <div class="messages">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="table-responsive">
+        <table class="table table-striped table-hover">
+            <thead class="table-dark">
+                <tr>
+                    <th>Manifiesto</th>
+                    <th>Origen</th>
+                    <th>Fecha de Empaque</th>
+                    <th>Fecha de Carga</th>
+                    <th>Total Referencias</th>
+                    <th>Total Unidades</th>
+                    <th>Procesado</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for sheet in sheets %}
+                <tr>
+                    <td>{{ sheet.manifest_number }}</td>
+                    <td>{{ sheet.get_origin_display }}</td>
+                    <td>{{ sheet.packing_date|date:"d/m/Y" }}</td>
+                    <td>{{ sheet.upload_date|date:"d/m/Y H:i" }}</td>
+                    <td>{{ sheet.total_refs }}</td>
+                    <td>{{ sheet.total_units }}</td>
+                    <td>
+                        {% if sheet.processed %}
+                        <span class="badge bg-success">Sí</span>
+                        {% else %}
+                        <span class="badge bg-warning">No</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div class="btn-group" role="group">
+                            <a href="{% url 'production_sheets:admin_edit' pk=sheet.pk %}" class="btn btn-warning btn-sm">
+                                <i class="bi bi-pencil"></i> Editar
+                            </a>
+                            <a href="{% url 'production_sheets:admin_delete' pk=sheet.pk %}" class="btn btn-danger btn-sm">
+                                <i class="bi bi-trash"></i> Eliminar
+                            </a>
+                            <a href="{% url 'production_sheets:production_sheet_detail' pk=sheet.pk %}" class="btn btn-info btn-sm">
+                                <i class="bi bi-eye"></i> Ver
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="8" class="text-center">No se encontraron planillas de producción</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
