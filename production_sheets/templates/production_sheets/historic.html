@@ -1,0 +1,150 @@
+{% extends 'excel_processor/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Histórico de Planillas de Producción</h2>
+    
+    <!-- Filtros y exportación -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-2">
+                    <label for="date_from" class="form-label">Fecha Desde:</label>
+                    <input type="date" class="form-control" id="date_from" name="date_from" value="{{ date_from|date:'Y-m-d' }}">
+                </div>
+                <div class="col-md-2">
+                    <label for="date_to" class="form-label">Fecha Hasta:</label>
+                    <input type="date" class="form-control" id="date_to" name="date_to" value="{{ date_to|date:'Y-m-d' }}">
+                </div>
+                <div class="col-md-2">
+                    <label for="origin" class="form-label">Origen:</label>
+                    <select class="form-select" id="origin" name="origin">
+                        <option value="">Todos</option>
+                        <option value="BANDA_1_2" {% if origin == 'BANDA_1_2' %}selected{% endif %}>Banda 1 y 2</option>
+                        <option value="BANDA_4" {% if origin == 'BANDA_4' %}selected{% endif %}>Banda 4</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label for="manifest" class="form-label">Manifiesto:</label>
+                    <input type="text" class="form-control" id="manifest" name="manifest" value="{{ manifest }}">
+                </div>
+                <div class="col-md-2">
+                    <label for="op" class="form-label">OP:</label>
+                    <input type="text" class="form-control" id="op" name="op" value="{{ request.GET.op }}">
+                </div>
+                <div class="col-12">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-search"></i> Filtrar
+                    </button>
+                    {% if sheets %}
+                    <a href="?{{ request.GET.urlencode }}&export=excel" class="btn btn-success">
+                        <i class="bi bi-file-excel"></i> Exportar Selección a Excel
+                    </a>
+                    {% endif %}
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {% if op_summary %}
+    <!-- Resumen de OP -->
+    <div class="card mb-4">
+        <div class="card-header bg-info text-white">
+            <h5 class="card-title mb-0">Resumen de OP</h5>
+        </div>
+        <div class="card-body">
+            <!-- Total General -->
+            <div class="alert alert-success mb-4">
+                <h6 class="alert-heading">Total General</h6>
+                <div class="row">
+                    <div class="col-md-6">
+                        <p class="mb-0"><strong>Total Unidades:</strong> {{ total_general.total_unidades }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p class="mb-0"><strong>Total Planillas:</strong> {{ total_general.total_planillas }}</p>
+                    </div>
+                </div>
+            </div>
+
+            {% for summary in op_summary %}
+            <div class="card mb-3">
+                <div class="card-header">
+                    <strong>OP:</strong> {{ summary.op }} - <strong>REF:</strong> {{ summary.ref }}
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>Total Unidades:</strong> {{ summary.total }}</p>
+                            <p><strong>Planillas:</strong> {{ summary.sheet_count }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Primera Fecha:</strong> {{ summary.first_date|date:"d/m/Y" }}</p>
+                            <p><strong>Última Fecha:</strong> {{ summary.last_date|date:"d/m/Y" }}</p>
+                        </div>
+                    </div>
+                    <table class="table table-sm mt-3">
+                        <thead>
+                            <tr>
+                                <th>Talla</th>
+                                <th>Cantidad</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for size, quantity in summary.sizes.items %}
+                            <tr>
+                                <td>{{ size }}</td>
+                                <td>{{ quantity }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Tabla de resultados -->
+    <div class="table-responsive">
+        <table class="table table-striped table-hover">
+            <thead class="table-dark">
+                <tr>
+                    <th>Manifiesto</th>
+                    <th>Origen</th>
+                    <th>Fecha de Empaque</th>
+                    <th>Fecha de Carga</th>
+                    <th>Total Referencias</th>
+                    <th>Total Unidades</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for sheet in sheets %}
+                <tr>
+                    <td>{{ sheet.manifest_number }}</td>
+                    <td>{{ sheet.get_origin_display }}</td>
+                    <td>{{ sheet.packing_date|date:"d/m/Y" }}</td>
+                    <td>{{ sheet.upload_date|date:"d/m/Y H:i" }}</td>
+                    <td>{{ sheet.total_refs }}</td>
+                    <td>{{ sheet.total_units }}</td>
+                    <td>
+                        <a href="{% url 'production_sheets:production_sheet_detail' pk=sheet.pk %}" class="btn btn-primary btn-sm">
+                            <i class="bi bi-table"></i> Ver Detalle
+                        </a>
+                        <a href="{% url 'production_sheets:production_sheet_detail' pk=sheet.pk %}?format=pdf" class="btn btn-danger btn-sm">
+                            <i class="bi bi-file-pdf"></i> PDF
+                        </a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" class="text-center">No se encontraron planillas de producción</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

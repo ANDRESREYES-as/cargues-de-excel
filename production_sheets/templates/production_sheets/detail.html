@@ -1,0 +1,58 @@
+{% extends 'excel_processor/base.html' %}
+{% load static %}
+{% load production_sheet_filters %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="text-center mb-4">
+        <h2>Planilla de Producción</h2>
+        <h3>Manifiesto: {{ production_sheet.manifest_number }}</h3>
+        <h4>Fecha de Empaque: {{ production_sheet.packing_date|date:"d/m/Y" }}</h4>
+        <h4>Origen: {{ production_sheet.get_origin_display }}</h4>
+    </div>
+
+    <div class="mb-3">
+        <a href="?format=pdf" class="btn btn-danger">
+            <i class="bi bi-file-pdf"></i> Descargar PDF
+        </a>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-bordered table-striped">
+            <thead class="table-dark">
+                <tr>
+                    <th>OP</th>
+                    <th>REF</th>
+                    {% for size in sizes %}
+                        <th>{{ size }}</th>
+                    {% endfor %}
+                    <th>TOTAL</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in table_data %}
+                    <tr>
+                        <td>{{ row.op }}</td>
+                        <td>{{ row.ref }}</td>
+                        {% for size in sizes %}
+                            <td>{{ row|get_item:size|default:"-" }}</td>
+                        {% endfor %}
+                        <td class="fw-bold">
+                            {{ row.total }}
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+            <tfoot class="table-dark">
+                <tr>
+                    <td colspan="2" class="text-end fw-bold">TOTAL GENERAL:</td>
+                    {% for size in sizes %}
+                        <td class="fw-bold">{{ size_totals|get_item:size|default:0 }}</td>
+                    {% endfor %}
+                    <td class="fw-bold">{{ grand_total }}</td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+</div>
+{% endblock %}

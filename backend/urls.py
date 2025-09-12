@@ -6,6 +6,7 @@ from django.conf.urls.static import static
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('excel/', include('excel_processor.urls')),
+    path('production/', include('production_sheets.urls', namespace='production_sheets')),
 ]
 
 if settings.DEBUG:

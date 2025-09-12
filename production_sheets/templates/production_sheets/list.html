@@ -1,0 +1,72 @@
+{% extends 'excel_processor/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Histórico de Planillas de Producción</h2>
+    
+    <!-- Barra de búsqueda -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3 align-items-center">
+                <div class="col-auto flex-grow-1">
+                    <div class="input-group">
+                        <input type="text" name="search" class="form-control" placeholder="Buscar por número de manifiesto..." value="{{ query }}">
+                        <button class="btn btn-primary" type="submit">
+                            <i class="bi bi-search"></i> Buscar
+                        </button>
+                    </div>
+                </div>
+                {% if query %}
+                <div class="col-auto">
+                    <a href="{% url 'production_sheets:list' %}" class="btn btn-secondary">
+                        <i class="bi bi-x-circle"></i> Limpiar
+                    </a>
+                </div>
+                {% endif %}
+            </form>
+        </div>
+    </div>
+
+    <!-- Tabla de resultados -->
+    <div class="table-responsive">
+        <table class="table table-striped table-hover">
+            <thead class="table-dark">
+                <tr>
+                    <th>Manifiesto</th>
+                    <th>Origen</th>
+                    <th>Fecha de Empaque</th>
+                    <th>Fecha de Carga</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for sheet in sheets %}
+                <tr>
+                    <td>{{ sheet.manifest_number }}</td>
+                    <td>{{ sheet.get_origin_display }}</td>
+                    <td>{{ sheet.packing_date|date:"d/m/Y" }}</td>
+                    <td>{{ sheet.upload_date|date:"d/m/Y H:i" }}</td>
+                    <td>
+                        <a href="{% url 'production_sheets:production_sheet_detail' pk=sheet.pk %}" class="btn btn-primary btn-sm">
+                            <i class="bi bi-table"></i> Ver Detalle
+                        </a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" class="text-center">No se encontraron planillas de producción</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Botón para cargar nueva planilla -->
+    <div class="mt-4">
+        <a href="{% url 'production_sheets:upload' %}" class="btn btn-success">
+            <i class="bi bi-plus-circle"></i> Cargar Nueva Planilla
+        </a>
+    </div>
+</div>
+{% endblock %}

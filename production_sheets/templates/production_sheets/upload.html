@@ -1,0 +1,31 @@
+{% extends 'excel_processor/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Cargar Planilla de Producción</h2>
+    <div class="card">
+        <div class="card-body">
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+                <div class="mb-3">
+                    <label for="{{ form.origin.id_for_label }}" class="form-label">Origen:</label>
+                    {{ form.origin }}
+                </div>
+                <div class="mb-3">
+                    <label for="{{ form.excel_file.id_for_label }}" class="form-label">Archivo Excel:</label>
+                    {{ form.excel_file }}
+                </div>
+                <button type="submit" class="btn btn-primary">Procesar</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

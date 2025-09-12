@@ -1,52 +1,129 @@
 from django.views.decorators.http import require_GET
 from django.utils.dateparse import parse_datetime
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 import io
 import openpyxl
+import datetime
+from django.core.exceptions import ObjectDoesNotExist
+from .models import RegistroExcel, ExcelProcess
+import traceback
 # Endpoint para exportar informe histórico o filtrado por rango de fechas en Excel
 @require_GET
 def exportar_excel_historico(request):
     """
-    Exporta un Excel con el histórico de todos los registros o filtrado por rango de fechas.
+    Exporta un Excel con el histórico de todos los registros o filtrado por parámetros.
     Parámetros GET:
         - fecha_inicio: (opcional) formato 'YYYY-MM-DD'
         - fecha_fin: (opcional) formato 'YYYY-MM-DD'
+        - op: (opcional) filtrar por número de orden de producción
     """
-    fecha_inicio = request.GET.get('fecha_inicio')
-    fecha_fin = request.GET.get('fecha_fin')
-    qs = RegistroExcel.objects.all().order_by('id')
-    if fecha_inicio:
-        qs = qs.filter(fecha_registro__gte=fecha_inicio)
-    if fecha_fin:
-        qs = qs.filter(fecha_registro__lte=fecha_fin)
+    try:
+        fecha_inicio = request.GET.get('fecha_inicio')
+        fecha_fin = request.GET.get('fecha_fin')
+        
+        # Validar formatos de fecha
+        if fecha_inicio:
+            try:
+                parse_datetime(fecha_inicio)
+            except ValueError:
+                return JsonResponse({'error': 'Formato de fecha_inicio inválido. Use YYYY-MM-DD'}, status=400)
+                
+        if fecha_fin:
+            try:
+                parse_datetime(fecha_fin)
+            except ValueError:
+                return JsonResponse({'error': 'Formato de fecha_fin inválido. Use YYYY-MM-DD'}, status=400)
 
-    wb = openpyxl.Workbook()
-    ws = wb.active
-    ws.title = 'Histórico'
-    # Encabezados
-    ws.append(['ID', 'Archivo', 'Consecutivo', 'Fecha Proceso', 'Orden', 'Producción', 'Cant. Orig', 'Saldo Entregar', 'Cant. Produc', 'Iny', 'Otros', 'Fecha Registro'])
-    for obj in qs:
-        ws.append([
-            obj.id,
-            str(obj.proceso.archivo),
-            obj.proceso.consecutivo,
-            obj.proceso.fecha.strftime('%Y-%m-%d %H:%M') if obj.proceso.fecha else '',
-            obj.orden,
-            obj.produccion,
-            obj.cant_orig,
-            obj.saldo_entregar,
-            obj.cant_produc,
-            obj.iny,
-            obj.otros,
-            obj.fecha_registro.strftime('%Y-%m-%d %H:%M') if obj.fecha_registro else ''
-        ])
+        # Obtener registros
+        qs = RegistroExcel.objects.all().select_related('proceso').order_by('id')
+        
+        # Aplicar filtros
+        if fecha_inicio:
+            qs = qs.filter(fecha_registro__gte=fecha_inicio)
+        if fecha_fin:
+            qs = qs.filter(fecha_registro__lte=fecha_fin)
+            
+        # Filtro por orden de producción
+        orden_produccion = request.GET.get('op')
+        if orden_produccion:
+            # Buscar coincidencia parcial e ignorar mayúsculas/minúsculas
+            qs = qs.filter(orden__icontains=orden_produccion)
 
-    output = io.BytesIO()
-    wb.save(output)
-    output.seek(0)
-    response = HttpResponse(output, content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
-    response['Content-Disposition'] = 'attachment; filename="informe_historico.xlsx"'
-    return response
+        # Crear libro de Excel
+        wb = openpyxl.Workbook()
+        ws = wb.active
+        ws.title = 'Histórico'
+    except Exception as e:
+        print(f"Error al preparar el reporte: {str(e)}")
+        print(traceback.format_exc())
+        return JsonResponse({
+            'error': 'Error al generar el reporte. Por favor contacte al administrador.'
+        }, status=500)
+    try:
+        # Encabezados
+        ws.append(['Archivo', 'Consecutivo', 'Orden', 'Producción', 'Cant. Orig', 
+                  'Saldo Entregar', 'Cant. Produc', 'Fecha Registro'])
+        
+        # Datos
+        for obj in qs:
+            try:
+                row = [
+                    str(obj.proceso.archivo) if obj.proceso else '',
+                    obj.proceso.consecutivo if obj.proceso else '',
+                    obj.orden or '',
+                    obj.produccion or '',
+                    obj.cant_orig or '',
+                    obj.saldo_entregar or '',
+                    obj.cant_produc or '',
+                    obj.fecha_registro.strftime('%Y-%m-%d %H:%M') if obj.fecha_registro else ''
+                ]
+                ws.append(row)
+            except Exception as e:
+                print(f"Error al procesar registro {obj.id}: {str(e)}")
+                continue
+
+        # Ajustar anchos de columna
+        for idx, col in enumerate(ws.columns, 1):
+            max_length = 0
+            column = openpyxl.utils.get_column_letter(idx)
+            for cell in col:
+                try:
+                    if len(str(cell.value)) > max_length:
+                        max_length = len(str(cell.value))
+                except:
+                    pass
+            adjusted_width = (max_length + 2)
+            ws.column_dimensions[column].width = adjusted_width
+
+        # Generar archivo
+        output = io.BytesIO()
+        wb.save(output)
+        output.seek(0)
+        
+        response = HttpResponse(
+            output,
+            content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        )
+        # Generar nombre del archivo con los filtros aplicados
+        filename_parts = ['informe_historico']
+        if orden_produccion:
+            filename_parts.append(f'OP_{orden_produccion}')
+        if fecha_inicio:
+            filename_parts.append(f'desde_{fecha_inicio}')
+        if fecha_fin:
+            filename_parts.append(f'hasta_{fecha_fin}')
+        filename_parts.append(datetime.datetime.now().strftime("%Y%m%d_%H%M%S"))
+        
+        filename = '_'.join(filename_parts) + '.xlsx'
+        response['Content-Disposition'] = f'attachment; filename="{filename}"'
+        return response
+        
+    except Exception as e:
+        print(f"Error al generar el archivo Excel: {str(e)}")
+        print(traceback.format_exc())
+        return JsonResponse({
+            'error': 'Error al generar el archivo Excel. Por favor contacte al administrador.'
+        }, status=500)
 
 from django.views.decorators.csrf import csrf_exempt
 from django.shortcuts import render, redirect
@@ -191,13 +268,21 @@ def upload_excel_web(request):
     return render(request, 'excel_processor/upload.html', {'pdf_3_7': pdf_3_7, 'pdf_otros': pdf_otros})
 
 def historico(request):
+    # Obtener parámetros de filtrado
     fecha_inicio = request.GET.get('fecha_inicio')
     fecha_fin = request.GET.get('fecha_fin')
-    registros = RegistroExcel.objects.all().order_by('-fecha_registro')
+    orden_produccion = request.GET.get('op')
+    
+    # Iniciar queryset con select_related para optimizar
+    registros = RegistroExcel.objects.all().select_related('proceso').order_by('-fecha_registro')
+    
+    # Aplicar filtros
     if fecha_inicio:
         registros = registros.filter(fecha_registro__gte=fecha_inicio)
     if fecha_fin:
         registros = registros.filter(fecha_registro__lte=fecha_fin)
+    if orden_produccion:
+        registros = registros.filter(orden__icontains=orden_produccion)
     paginator = Paginator(registros, 50)
     page = request.GET.get('page')
     registros_page = paginator.get_page(page)

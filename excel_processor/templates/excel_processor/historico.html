@@ -3,41 +3,54 @@
 {% block content %}
 <h2>Histórico de Registros</h2>
 <form method="get" class="row g-3 mb-3">
-    <div class="col-auto">
-        <input type="date" name="fecha_inicio" class="form-control" value="{{ request.GET.fecha_inicio }}">
+    <div class="col-md-3">
+        <label for="fecha_inicio" class="form-label">Fecha Inicio</label>
+        <input type="date" id="fecha_inicio" name="fecha_inicio" class="form-control" value="{{ request.GET.fecha_inicio }}">
     </div>
-    <div class="col-auto">
-        <input type="date" name="fecha_fin" class="form-control" value="{{ request.GET.fecha_fin }}">
+    <div class="col-md-3">
+        <label for="fecha_fin" class="form-label">Fecha Fin</label>
+        <input type="date" id="fecha_fin" name="fecha_fin" class="form-control" value="{{ request.GET.fecha_fin }}">
     </div>
-    <div class="col-auto">
-        <button type="submit" class="btn btn-secondary">Filtrar</button>
-        <a href="/excel/exportar_excel_historico/?{% if request.GET.fecha_inicio %}fecha_inicio={{ request.GET.fecha_inicio }}&{% endif %}{% if request.GET.fecha_fin %}fecha_fin={{ request.GET.fecha_fin }}{% endif %}" class="btn btn-success">Exportar Excel</a>
+    <div class="col-md-3">
+        <label for="op" class="form-label">Orden de Producción</label>
+        <input type="text" id="op" name="op" class="form-control" value="{{ request.GET.op }}" placeholder="Buscar por OP...">
+    </div>
+    <div class="col-md-3">
+        <label class="form-label">&nbsp;</label>
+        <div class="d-flex">
+            <button type="submit" class="btn btn-secondary me-2">Filtrar</button>
+            <a href="/excel/exportar_excel_historico/?{% if request.GET.fecha_inicio %}fecha_inicio={{ request.GET.fecha_inicio }}&{% endif %}{% if request.GET.fecha_fin %}fecha_fin={{ request.GET.fecha_fin }}&{% endif %}{% if request.GET.op %}op={{ request.GET.op }}{% endif %}" 
+               class="btn btn-success">Exportar Excel</a>
+        </div>
     </div>
 </form>
 <table class="table table-bordered table-sm">
     <thead>
         <tr>
-            <th>ID</th><th>Archivo</th><th>Consecutivo</th><th>Fecha Proceso</th><th>Orden</th><th>Producción</th><th>Cant. Orig</th><th>Saldo Entregar</th><th>Cant. Produc</th><th>Iny</th><th>Otros</th><th>Fecha Registro</th>
+            <th>Archivo</th>
+            <th>Consecutivo</th>
+            <th>Orden</th>
+            <th>Producción</th>
+            <th>Cant. Orig</th>
+            <th>Saldo Entregar</th>
+            <th>Cant. Produc</th>
+            <th>Fecha Registro</th>
         </tr>
     </thead>
     <tbody>
     {% for reg in registros %}
         <tr>
-            <td>{{ reg.id }}</td>
             <td>{{ reg.proceso.archivo }}</td>
             <td>{{ reg.proceso.consecutivo }}</td>
-            <td>{{ reg.proceso.fecha|date:'Y-m-d H:i' }}</td>
             <td>{{ reg.orden }}</td>
             <td>{{ reg.produccion }}</td>
             <td>{{ reg.cant_orig }}</td>
             <td>{{ reg.saldo_entregar }}</td>
             <td>{{ reg.cant_produc }}</td>
-            <td>{{ reg.iny }}</td>
-            <td>{{ reg.otros }}</td>
             <td>{{ reg.fecha_registro|date:'Y-m-d H:i' }}</td>
         </tr>
     {% empty %}
-        <tr><td colspan="12">No hay registros.</td></tr>
+        <tr><td colspan="8">No hay registros.</td></tr>
     {% endfor %}
     </tbody>
 </table>
