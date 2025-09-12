@@ -1,5 +1,6 @@
-{% extends 'excel_processor/base.html' %}
+{% extends 'admin/base.html' %}
 {% load static %}
+{% load custom_filters %}
 
 {% block content %}
 <div class="container mt-4">
@@ -9,8 +10,8 @@
         <h4 class="alert-heading">¿Estás seguro?</h4>
         <p>Esta acción no se puede deshacer.</p>
 
-        {% if object|class_name == 'ExcelFile' %}
-        <p>Estás a punto de eliminar el archivo: <strong>{{ object.file.name }}</strong></p>
+        {% if object|class_name == 'ExcelProcess' %}
+        <p>Estás a punto de eliminar el archivo: <strong>{{ object.archivo.name }}</strong></p>
         {% elif object|class_name == 'ProductionSheet' %}
         <p>Estás a punto de eliminar la planilla con manifiesto: <strong>{{ object.manifest_number }}</strong></p>
         {% elif object|class_name == 'ProductionDetail' %}
@@ -21,6 +22,21 @@
             <li><strong>Referencia:</strong> {{ object.ref }}</li>
             <li><strong>Talla:</strong> {{ object.size }}</li>
             <li><strong>Cantidad:</strong> {{ object.quantity }}</li>
+        </ul>
+        {% elif object|class_name == 'RegistroExcel' %}
+        <p>Estás a punto de eliminar el registro:</p>
+        <ul>
+            <li><strong>Orden:</strong> {{ object.orden }}</li>
+            <li><strong>Producción:</strong> {{ object.produccion }}</li>
+            <li><strong>Cantidad Original:</strong> {{ object.cant_orig }}</li>
+            <li><strong>Saldo por Entregar:</strong> {{ object.saldo_entregar }}</li>
+            <li><strong>Cantidad Producida:</strong> {{ object.cant_produc }}</li>
+        </ul>
+        {% elif object|class_name == 'PDFProcessHistory' %}
+        <p>Estás a punto de eliminar el proceso PDF:</p>
+        <ul>
+            <li><strong>Fecha:</strong> {{ object.process_date|date:"d/m/Y H:i" }}</li>
+            <li><strong>Tipo:</strong> {% if object.is_global %}Global{% else %}Individual{% endif %}</li>
         </ul>
         {% endif %}
     </div>

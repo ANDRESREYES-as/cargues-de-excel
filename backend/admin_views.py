@@ -32,11 +32,12 @@ class ExcelProcessListView(AdminViewMixin, ListView):
     template_name = 'admin/excel_process_list.html'
     context_object_name = 'files'
     ordering = ['-fecha_carga']
+    paginate_by = 100
 
 class ExcelProcessDeleteView(AdminViewMixin, DeleteView):
     model = ExcelProcess
     template_name = 'admin/confirm_delete.html'
-    success_url = reverse_lazy('admin:excel_process_list')
+    success_url = reverse_lazy('custom_admin:excel_process_list')
 
     def delete(self, request, *args, **kwargs):
         self.object = self.get_object()
@@ -52,6 +53,7 @@ class ProductionDetailListView(AdminViewMixin, ListView):
     template_name = 'admin/production_detail_list.html'
     context_object_name = 'details'
     ordering = ['-production_sheet__upload_date', 'op', 'ref', 'size']
+    paginate_by = 100
 
     def get_queryset(self):
         return super().get_queryset().select_related('production_sheet')
@@ -59,7 +61,7 @@ class ProductionDetailListView(AdminViewMixin, ListView):
 class ProductionDetailDeleteView(AdminViewMixin, DeleteView):
     model = ProductionDetail
     template_name = 'admin/confirm_delete.html'
-    success_url = reverse_lazy('admin:production_detail_list')
+    success_url = reverse_lazy('custom_admin:production_detail_list')
 
     def delete(self, request, *args, **kwargs):
         self.object = self.get_object()
@@ -74,6 +76,7 @@ class RegistroExcelListView(AdminViewMixin, ListView):
     template_name = 'admin/registro_excel_list.html'
     context_object_name = 'registros'
     ordering = ['-fecha_registro']
+    paginate_by = 100
 
     def get_queryset(self):
         return super().get_queryset().select_related('proceso')
@@ -82,7 +85,7 @@ class RegistroExcelEditView(AdminViewMixin, UpdateView):
     model = RegistroExcel
     template_name = 'admin/registro_excel_edit.html'
     fields = ['orden', 'produccion', 'cant_orig', 'saldo_entregar', 'cant_produc', 'iny', 'otros']
-    success_url = reverse_lazy('admin:registro_excel_list')
+    success_url = reverse_lazy('custom_admin:registro_excel_list')
 
     def form_valid(self, form):
         response = super().form_valid(form)
@@ -92,7 +95,7 @@ class RegistroExcelEditView(AdminViewMixin, UpdateView):
 class RegistroExcelDeleteView(AdminViewMixin, DeleteView):
     model = RegistroExcel
     template_name = 'admin/confirm_delete.html'
-    success_url = reverse_lazy('admin:registro_excel_list')
+    success_url = reverse_lazy('custom_admin:registro_excel_list')
 
     def delete(self, request, *args, **kwargs):
         self.object = self.get_object()
@@ -107,11 +110,12 @@ class PDFProcessListView(AdminViewMixin, ListView):
     template_name = 'admin/pdf_process_list.html'
     context_object_name = 'pdfs'
     ordering = ['-process_date']
+    paginate_by = 100
 
 class PDFProcessDeleteView(AdminViewMixin, DeleteView):
     model = PDFProcessHistory
     template_name = 'admin/confirm_delete.html'
-    success_url = reverse_lazy('admin:pdf_process_list')
+    success_url = reverse_lazy('custom_admin:pdf_process_list')
 
     def delete(self, request, *args, **kwargs):
         self.object = self.get_object()
@@ -124,7 +128,7 @@ class ProductionDetailEditView(AdminViewMixin, UpdateView):
     model = ProductionDetail
     template_name = 'admin/production_detail_edit.html'
     fields = ['op', 'ref', 'size', 'quantity']
-    success_url = reverse_lazy('admin:production_detail_list')
+    success_url = reverse_lazy('custom_admin:production_detail_list')
 
     def form_valid(self, form):
         response = super().form_valid(form)
@@ -137,12 +141,13 @@ class ProductionSheetListView(AdminViewMixin, ListView):
     template_name = 'admin/production_sheet_list.html'
     context_object_name = 'sheets'
     ordering = ['-upload_date']
+    paginate_by = 100
 
 class ProductionSheetEditView(AdminViewMixin, UpdateView):
     model = ProductionSheet
     template_name = 'admin/production_sheet_edit.html'
     fields = ['file', 'upload_date']
-    success_url = reverse_lazy('admin:production_sheet_list')
+    success_url = reverse_lazy('custom_admin:production_sheet_list')
 
     def form_valid(self, form):
         response = super().form_valid(form)
@@ -152,7 +157,7 @@ class ProductionSheetEditView(AdminViewMixin, UpdateView):
 class ProductionSheetDeleteView(AdminViewMixin, DeleteView):
     model = ProductionSheet
     template_name = 'admin/confirm_delete.html'
-    success_url = reverse_lazy('admin:production_sheet_list')
+    success_url = reverse_lazy('custom_admin:production_sheet_list')
 
     def delete(self, request, *args, **kwargs):
         self.object = self.get_object()

@@ -24,6 +24,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'excel_processor',
     'production_sheets',
+    'backend',
 ]
 
 MIDDLEWARE = [
