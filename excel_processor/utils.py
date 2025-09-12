@@ -5,11 +5,17 @@ def validar_formato_excel(ws):
     """
     # Lista de columnas requeridas (nombres exactos)
     COLUMNAS_REQUERIDAS = [
-        'Consecutivo',
-        'Referencia',
-        'OP',
-        'Fecha Empaque',
-        'Manifiesto'
+        'Nro.Ord.Prod',
+        'PRODUC.',
+        'CANT. ORIGINAL',
+        'SALDO P ENTREGAR',
+        'Ctd.Producid',
+        'Observacion',
+        'FC.PREVISTA',
+        'concat',
+        'anterior',
+        'nuevo',
+        'iny'
     ]
     
     # Obtener los nombres de las columnas del Excel (primera fila)
