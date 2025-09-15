@@ -1,0 +1,82 @@
+{% extends 'excel_processor/base.html' %}
+
+{% block title %}Cargar Archivos Excel{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card">
+        <div class="card-header">
+            <h2>Cargar Archivos Excel para Cálculo</h2>
+        </div>
+        <div class="card-body">
+            {% if messages %}
+            <div class="messages">
+                {% for message in messages %}
+                <div class="alert alert-{{ message.tags }}">
+                    {{ message }}
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                
+                <div class="mb-3">
+                    <label for="archivo_inventario" class="form-label">Archivo de Inventario</label>
+                    <input type="file" class="form-control" id="archivo_inventario" name="archivo_inventario" accept=".xlsx,.xls" required>
+                    <div class="form-text">
+                        Debe contener las columnas: Producto, Deposito y Saldo Actual
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="archivo_ventas" class="form-label">Archivo de Ventas</label>
+                    <input type="file" class="form-control" id="archivo_ventas" name="archivo_ventas" accept=".xlsx,.xls" required>
+                    <div class="form-text">
+                        Debe contener las columnas: Producto y Cant.Pendiente
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="archivo_produccion" class="form-label">Archivo de Producción</label>
+                    <input type="file" class="form-control" id="archivo_produccion" name="archivo_produccion" accept=".xlsx,.xls" required>
+                    <div class="form-text">
+                        Debe contener las columnas: PRODUC. y SALDO P ENTREGAR
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary">
+                    Procesar Archivos
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <div class="card mt-4">
+        <div class="card-header">
+            <h3>Instrucciones</h3>
+        </div>
+        <div class="card-body">
+            <h4>Requisitos de los archivos:</h4>
+            
+            <h5>1. Archivo de Inventario:</h5>
+            <ul>
+                <li>Se procesarán solo productos que inicien con "PA"</li>
+                <li>Se considerarán solo registros del depósito "PT"</li>
+                <li>Se sumarán los saldos actuales por producto</li>
+            </ul>
+
+            <h5>2. Archivo de Ventas:</h5>
+            <ul>
+                <li>Se sumarán las cantidades pendientes por producto</li>
+            </ul>
+
+            <h5>3. Archivo de Producción:</h5>
+            <ul>
+                <li>Se sumarán los saldos por entregar por producto</li>
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}

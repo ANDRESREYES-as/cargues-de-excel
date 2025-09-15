@@ -31,4 +31,11 @@ class RegistroExcel(models.Model):
     cant_produc = models.FloatField(blank=True, null=True)
     iny = models.CharField(max_length=20, blank=True, null=True)
     otros = models.CharField(max_length=100, blank=True, null=True)
+    origen = models.CharField(max_length=100, blank=True, null=True)
     fecha_registro = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        ordering = ['-fecha_registro']
+        
+    def __str__(self):
+        return f"{self.orden} - {self.produccion}"

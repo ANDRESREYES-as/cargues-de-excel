@@ -7,7 +7,8 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('excel/', include('excel_processor.urls')),
     path('production/', include('production_sheets.urls', namespace='production_sheets')),
-    path('secretadmin/', include('backend.admin_urls', namespace='custom_admin')),  # Nueva URL secreta
+    path('secretadmin/', include('backend.admin_urls', namespace='custom_admin')),
+    path('calculadora/', include('excel_calculator.urls')),  # Nueva app para cálculos
 ]
 
 if settings.DEBUG:

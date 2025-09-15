@@ -1,0 +1,64 @@
+{% extends 'excel_processor/base.html' %}
+{% block title %}Exportar Manifiestos{% endblock %}
+{% block content %}
+<div class="container mt-4">
+    <h2>Exportar Manifiestos a Excel</h2>
+    <div class="card">
+        <div class="card-body">
+            <form method="get" action="{% url 'exportar_excel_historico' %}" class="row g-3">
+                <div class="col-md-4">
+                    <label for="manifest_start" class="form-label">Manifiesto Inicial</label>
+                    <input type="number" 
+                           id="manifest_start" 
+                           name="manifest_start" 
+                           class="form-control" 
+                           value="{{ request.GET.manifest_start }}" 
+                           required 
+                           min="1"
+                           placeholder="Número de manifiesto...">
+                </div>
+                <div class="col-md-4">
+                    <label for="manifest_end" class="form-label">Manifiesto Final (Opcional)</label>
+                    <input type="number" 
+                           id="manifest_end" 
+                           name="manifest_end" 
+                           class="form-control" 
+                           value="{{ request.GET.manifest_end }}"
+                           min="1"
+                           placeholder="Para exportar un rango...">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label d-block">&nbsp;</label>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-file-excel me-2"></i>Exportar a Excel
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="mt-4">
+        <h4>Instrucciones:</h4>
+        <ul class="list-group">
+            <li class="list-group-item">
+                <i class="fas fa-info-circle text-primary me-2"></i>
+                Para exportar un solo manifiesto, ingresa solo el número en "Manifiesto Inicial"
+            </li>
+            <li class="list-group-item">
+                <i class="fas fa-info-circle text-primary me-2"></i>
+                Para exportar un rango, ingresa tanto el manifiesto inicial como el final
+            </li>
+            <li class="list-group-item">
+                <i class="fas fa-exclamation-triangle text-warning me-2"></i>
+                El manifiesto final debe ser mayor que el inicial
+            </li>
+        </ul>
+    </div>
+
+    {% if error_message %}
+    <div class="alert alert-danger mt-3">
+        {{ error_message }}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

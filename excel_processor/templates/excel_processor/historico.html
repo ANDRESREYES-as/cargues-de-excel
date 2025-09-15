@@ -3,24 +3,31 @@
 {% block content %}
 <h2>Histórico de Registros</h2>
 <form method="get" class="row g-3 mb-3">
-    <div class="col-md-3">
-        <label for="fecha_inicio" class="form-label">Fecha Inicio</label>
-        <input type="date" id="fecha_inicio" name="fecha_inicio" class="form-control" value="{{ request.GET.fecha_inicio }}">
+    <div class="col-md-2">
+        <label for="date_from" class="form-label">Fecha Inicio</label>
+        <input type="date" id="date_from" name="date_from" class="form-control" value="{{ request.GET.date_from }}">
     </div>
-    <div class="col-md-3">
-        <label for="fecha_fin" class="form-label">Fecha Fin</label>
-        <input type="date" id="fecha_fin" name="fecha_fin" class="form-control" value="{{ request.GET.fecha_fin }}">
+    <div class="col-md-2">
+        <label for="date_to" class="form-label">Fecha Fin</label>
+        <input type="date" id="date_to" name="date_to" class="form-control" value="{{ request.GET.date_to }}">
     </div>
-    <div class="col-md-3">
+    <div class="col-md-2">
+        <label for="origin" class="form-label">Origen</label>
+        <input type="text" id="origin" name="origin" class="form-control" value="{{ request.GET.origin }}" placeholder="Origen...">
+    </div>
+    <div class="col-md-2">
+        <label for="manifest" class="form-label">Manifiesto</label>
+        <input type="text" id="manifest" name="manifest" class="form-control" value="{{ request.GET.manifest }}" placeholder="Número...">
+    </div>
+    <div class="col-md-2">
         <label for="op" class="form-label">Orden de Producción</label>
         <input type="text" id="op" name="op" class="form-control" value="{{ request.GET.op }}" placeholder="Buscar por OP...">
     </div>
-    <div class="col-md-3">
+    <div class="col-md-2">
         <label class="form-label">&nbsp;</label>
         <div class="d-flex">
             <button type="submit" class="btn btn-secondary me-2">Filtrar</button>
-            <a href="/excel/exportar_excel_historico/?{% if request.GET.fecha_inicio %}fecha_inicio={{ request.GET.fecha_inicio }}&{% endif %}{% if request.GET.fecha_fin %}fecha_fin={{ request.GET.fecha_fin }}&{% endif %}{% if request.GET.op %}op={{ request.GET.op }}{% endif %}" 
-               class="btn btn-success">Exportar Excel</a>
+            <button type="submit" name="export" value="excel" class="btn btn-success">Exportar Excel</button>
         </div>
     </div>
 </form>
