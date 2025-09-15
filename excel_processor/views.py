@@ -445,3 +445,8 @@ def pdf_list(request):
         else:
             proc.pdf_path = None
     return render(request, 'excel_processor/pdf_list.html', {'procesos': procesos})
+
+def manifiestos(request):
+    return render(request, 'excel_processor/manifiestos.html')
+def produccion(request):
+    return render(request, 'excel_processor/produccion.html')

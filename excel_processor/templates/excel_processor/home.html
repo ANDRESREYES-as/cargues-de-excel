@@ -1,11 +1,11 @@
 {% extends 'excel_processor/base.html' %}
-{% block title %}Inicio - Panel de Producción{% endblock %}
+{% block title %}Gestion De Manifiestos{% endblock %}
 {% block content %}
-<h1>👞 Panel de Producción</h1>
-<p>🎉Bienvenido al sistema de gestión de planillas de producción.</p>
+<h1>👞 Panel de Gestion</h1>
+<p>🎉Bienvenido al sistema de gestión.</p>
 <ul>
-    <a class="btn btn-primary" href="/excel/upload/" role="button">✅ Subir Excel</a>
-    <a class="btn btn-primary" href="/excel/historico/" role="button">📖 Historico De Registros</a>
-    <a class="btn btn-primary" href="/excel/pdfs/" role="button">👁️‍🗨️ Ver Pdf</a>
+    <a class="btn btn-primary" href="/excel/manifiestos/" role="button">Panel De Gestion Manifiestos</a>
+    <a class="btn btn-primary" href="/excel/produccion/" role="button">Panel De Gestion Produccion</a>
+    <a class="btn btn-primary" href="/excel/pdf-batch/" role="button">PDFs X Lotes</a>
 </ul>
 {% endblock %}

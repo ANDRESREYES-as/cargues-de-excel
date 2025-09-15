@@ -10,4 +10,6 @@ urlpatterns = [
     path('upload_api/', views.upload_excel, name='upload_excel'),
     path('pdfs/', views.pdf_list, name='pdf_list'),
     path('pdf-batch/', views_batch.pdf_batch_process, name='pdf_batch_process'),
+    path('manifiestos/', views.manifiestos, name='manifiestos'),
+    path('produccion/', views.produccion, name='produccion'),
 ]
