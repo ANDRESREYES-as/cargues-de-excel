@@ -22,7 +22,8 @@ class ResultadoCalculo(models.Model):
     """
     Modelo para almacenar los resultados del cálculo
     """
-    producto = models.CharField(max_length=100)
+    referencia = models.CharField(max_length=97, help_text='Referencia del producto sin la talla', default='')
+    talla = models.CharField(max_length=3, help_text='Talla del producto', default='')
     ventas = models.DecimalField(max_digits=15, decimal_places=2, default=0, 
                                help_text='Cantidad pendiente de ventas')
     inventario = models.DecimalField(max_digits=15, decimal_places=2, default=0,
@@ -36,7 +37,7 @@ class ResultadoCalculo(models.Model):
     fecha_calculo = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"{self.producto} - Balance: {self.balance} ({self.fecha_calculo.strftime('%Y-%m-%d %H:%M')})"
+        return f"{self.referencia}-{self.talla} - Balance: {self.balance} ({self.fecha_calculo.strftime('%Y-%m-%d %H:%M')})"
 
     class Meta:
-        ordering = ['producto', '-fecha_calculo']
+        ordering = ['referencia', 'talla', '-fecha_calculo']
