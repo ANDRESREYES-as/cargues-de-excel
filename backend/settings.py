@@ -25,6 +25,7 @@ INSTALLED_APPS = [
     'excel_processor',
     'production_sheets',
     'backend',
+    'excel_calculator',
 ]
 
 MIDDLEWARE = [

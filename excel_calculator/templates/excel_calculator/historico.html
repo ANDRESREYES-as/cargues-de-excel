@@ -1,0 +1,129 @@
+{% extends 'excel_processor/base.html' %}
+
+{% block title %}Histórico de Cálculos{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card">
+        <div class="card-header">
+            <h2>Histórico de Cálculos</h2>
+        </div>
+        {% if messages %}
+        <div class="messages">
+            {% for message in messages %}
+            <div class="alert {% if message.tags %}alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %}{% endif %} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        <div class="card-body">
+            <!-- Filtros -->
+            <form method="get" class="row g-3 mb-4">
+                <div class="col-md-3">
+                    <label for="referencia" class="form-label">Referencia</label>
+                    <input type="text" class="form-control" id="referencia" name="referencia" 
+                           value="{{ referencia }}" placeholder="Buscar por referencia...">
+                </div>
+                <div class="col-md-3">
+                    <label for="fecha_inicio" class="form-label">Fecha Inicio</label>
+                    <input type="date" class="form-control" id="fecha_inicio" name="fecha_inicio" 
+                           value="{{ fecha_inicio }}">
+                </div>
+                <div class="col-md-3">
+                    <label for="fecha_fin" class="form-label">Fecha Fin</label>
+                    <input type="date" class="form-control" id="fecha_fin" name="fecha_fin" 
+                           value="{{ fecha_fin }}">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">&nbsp;</label>
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-search"></i> Buscar
+                        </button>
+                        <button type="submit" name="export" value="excel" class="btn btn-success">
+                            <i class="bi bi-file-excel"></i> Exportar a Excel
+                        </button>
+                    </div>
+                </div>
+            </form>
+
+            <!-- Tabla de resultados -->
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Referencia</th>
+                            <th>Talla</th>
+                            <th>Ventas Pendientes</th>
+                            <th>Inventario</th>
+                            <th>Producción</th>
+                            <th>Total Disponible</th>
+                            <th>Balance</th>
+                            <th>Fecha Cálculo</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for resultado in resultados %}
+                        <tr>
+                            <td>{{ resultado.referencia }}</td>
+                            <td>{{ resultado.talla }}</td>
+                            <td>{{ resultado.ventas }}</td>
+                            <td>{{ resultado.inventario }}</td>
+                            <td>{{ resultado.produccion }}</td>
+                            <td>{{ resultado.total_disponible }}</td>
+                            <td class="{% if resultado.balance < 0 %}text-danger{% else %}text-success{% endif %}">
+                                {{ resultado.balance }}
+                            </td>
+                            <td>{{ resultado.fecha_calculo|date:"Y-m-d H:i" }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="8" class="text-center">No hay resultados disponibles</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Paginación -->
+            {% if resultados.has_other_pages %}
+            <nav aria-label="Paginación" class="mt-4">
+                <ul class="pagination justify-content-center">
+                    {% if resultados.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page=1{% if referencia %}&referencia={{ referencia }}{% endif %}{% if fecha_inicio %}&fecha_inicio={{ fecha_inicio }}{% endif %}{% if fecha_fin %}&fecha_fin={{ fecha_fin }}{% endif %}">&laquo; Primera</a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ resultados.previous_page_number }}{% if referencia %}&referencia={{ referencia }}{% endif %}{% if fecha_inicio %}&fecha_inicio={{ fecha_inicio }}{% endif %}{% if fecha_fin %}&fecha_fin={{ fecha_fin }}{% endif %}">Anterior</a>
+                    </li>
+                    {% endif %}
+
+                    {% for num in resultados.paginator.page_range %}
+                        {% if resultados.number == num %}
+                        <li class="page-item active">
+                            <span class="page-link">{{ num }}</span>
+                        </li>
+                        {% elif num > resultados.number|add:'-3' and num < resultados.number|add:'3' %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ num }}{% if referencia %}&referencia={{ referencia }}{% endif %}{% if fecha_inicio %}&fecha_inicio={{ fecha_inicio }}{% endif %}{% if fecha_fin %}&fecha_fin={{ fecha_fin }}{% endif %}">{{ num }}</a>
+                        </li>
+                        {% endif %}
+                    {% endfor %}
+
+                    {% if resultados.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ resultados.next_page_number }}{% if referencia %}&referencia={{ referencia }}{% endif %}{% if fecha_inicio %}&fecha_inicio={{ fecha_inicio }}{% endif %}{% if fecha_fin %}&fecha_fin={{ fecha_fin }}{% endif %}">Siguiente</a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ resultados.paginator.num_pages }}{% if referencia %}&referencia={{ referencia }}{% endif %}{% if fecha_inicio %}&fecha_inicio={{ fecha_inicio }}{% endif %}{% if fecha_fin %}&fecha_fin={{ fecha_fin }}{% endif %}">Última &raquo;</a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
