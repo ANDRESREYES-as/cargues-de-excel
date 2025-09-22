@@ -8,6 +8,8 @@ urlpatterns = [
     path('upload/', views.process_production_sheet, name='upload'),
     path('detail/<int:pk>/', views.production_sheet_detail, name='production_sheet_detail'),
     path('historic/', views.production_sheets_historic, name='historic'),
+    path('', views.home, name='home'),  # Nueva ruta para la vista home
+    # Rutas para vistas administrativas
     
     # URLs administrativas (solo accesibles por URL directa)
     path('admin/list/', admin_views.AdminListView.as_view(), name='admin_list'),

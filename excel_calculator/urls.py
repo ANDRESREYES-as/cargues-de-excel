@@ -8,4 +8,5 @@ urlpatterns = [
     path('historico/', views_historico.historico_calculos, name='historico_calculos'),
     path('exportar/', views.exportar_excel, name='exportar_excel'),
     path('exportar-pivotado/', views.exportar_excel_pivotado, name='exportar_excel_pivotado'),
+    path('', views.home, name='home'),  # Nueva ruta para la vista home
 ]

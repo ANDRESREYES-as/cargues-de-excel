@@ -212,3 +212,6 @@ def production_sheet_detail(request, pk):
         return generate_pdf(production_sheet, context)
         
     return render(request, 'production_sheets/detail.html', context)
+
+def home(request):
+    return render(request, 'production_sheets/home.html')

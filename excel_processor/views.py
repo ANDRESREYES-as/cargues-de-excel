@@ -445,3 +445,7 @@ def pdf_list(request):
         else:
             proc.pdf_path = None
     return render(request, 'excel_processor/pdf_list.html', {'procesos': procesos})
+
+def manhoms(request):
+    return render(request, 'excel_processor/manhoms.html')
+# Agregar la vista manhoms al archivo views.py 

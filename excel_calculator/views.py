@@ -248,3 +248,5 @@ def ver_resultados(request):
         'resultados': resultados,
         'fecha_calculo': ultimo_calculo.fecha_calculo if ultimo_calculo else None
     })
+def home(request):
+    return render(request, 'excel_calculator/home.html')
